@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Szómondó — magyar szótanuló</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FAF6EE;
+    --ink: #26221D;
+    --ink-soft: #6b6459;
+    --paprika: #C1440E;
+    --paprika-deep: #9c3608;
+    --teal: #1F4C46;
+    --gold: #D9A441;
+    --green: #2E7D46;
+    --red: #C13B3B;
+    --neutral-bg: #C9C2AE;
+    --neutral-border: #8f8875;
+    --card: #FFFFFF;
+    --line: #E8DFCF;
+    --line-strong: #B7A783;
+    --radius: 18px;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ margin:0; padding:0; touch-action: manipulation; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+  .app{
+    width: 100%;
+    max-width: 460px;
+    padding: 14px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+  }
+
+  .top-controls-grid{
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 6px;
+  }
+  .menu-wrap{
+    position: relative;
+  }
+  .menu-btn-small{
+    padding: 4px 10px;
+    font-size: 14px;
+  }
+  .menu-panel{
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    position: absolute;
+    top: 30px;
+    left: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    z-index: 10;
+    min-width: 180px;
+  }
+  .menu-panel.show{ display: flex; }
+  .menu-panel button{
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .menu-panel button:hover{ background: var(--bg); }
+
+  .mic-row{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .flag-btn{
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+    border: 2px solid transparent;
+    background: var(--card);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.45;
+    flex-shrink: 0;
+    transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  }
+  .flag-btn.active{
+    opacity: 1;
+    border-color: var(--paprika);
+    transform: scale(1.08);
+  }
+  .mic-wrap{
+    margin-left: auto;
+  }
+  #micBtn{
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: none;
+    background: var(--paprika);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(193,68,14,0.28);
+    transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  #micBtn:active{ transform: scale(0.96); }
+  #micBtn.listening{
+    background: var(--teal);
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow: 0 0 0 0 rgba(31,76,70,0.45); }
+    70%{ box-shadow: 0 0 0 22px rgba(31,76,70,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(31,76,70,0); }
+  }
+  #micBtn svg{ width: 34px; height: 34px; }
+
+  .switch-wrap{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+  .switch{ position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{
+    position: absolute; inset: 0;
+    background: var(--line);
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .slider::before{
+    content: "";
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .switch input:checked + .slider{ background: var(--teal); }
+  .switch input:checked + .slider::before{ transform: translateX(18px); }
+  .switch-label{ font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
+  .question-btn{
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--ink-soft);
+    opacity: 0.6;
+  }
+  .question-btn.active{
+    border-color: var(--paprika);
+    color: var(--paprika-deep);
+    background: rgba(193,68,14,0.12);
+    opacity: 1;
+  }
+
+  .error-status{
+    font-size: 13px;
+    color: var(--paprika-deep);
+    text-align: center;
+    display: none;
+  }
+  .error-status.show{ display: block; }
+
+  .fallback-row{ display: flex; gap: 8px; }
+  .fallback-row input{
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    font-family: 'Work Sans', sans-serif;
+    font-size: 15px;
+    background: var(--card);
+    color: var(--ink);
+  }
+  .fallback-row button{
+    padding: 0 16px;
+    border-radius: 12px;
+    border: none;
+    background: var(--teal);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .result-card{
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 18px 16px;
+    border: 1px solid var(--line);
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+  }
+  .result-card.show{ display: flex; }
+  .result-card::before{
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 13px;
+    border: 2px dashed rgba(193,68,14,0.22);
+    pointer-events: none;
+  }
+  .lang-tag{
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+  .lang-tag.hu{ background: rgba(217,164,65,0.2); color: var(--paprika-deep); }
+  .lang-tag.fx{ background: rgba(31,76,70,0.12); color: var(--teal); }
+  .orig-text{ font-size: 15px; color: var(--ink-soft); outline: none; border-radius: 6px; padding: 2px 4px; margin: -2px -4px; }
+  .trans-text{
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.25;
+    outline: none;
+    border-radius: 6px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+  }
+  .orig-text:focus, .trans-text:focus{ background: rgba(193,68,14,0.06); box-shadow: 0 0 0 1px rgba(193,68,14,0.3); }
+  .result-main{
+    display: flex;
+    gap: 10px;
+  }
+  .result-text{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .result-actions{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-top: auto;
+  }
+  .action-btn{
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink-soft);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .action-btn:hover{ background: #f2ece0; }
+  .action-btn.correct{ background: rgba(46,125,70,0.15); border-color: var(--green); color: var(--green); }
+  .action-btn.incorrect{ background: rgba(193,59,59,0.15); border-color: var(--red); color: var(--red); }
+  .action-btn.listening-active{ background: var(--neutral-bg); border-color: var(--neutral-border); color: var(--ink); }
+  .icon-btn{
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .icon-btn:hover{ background: #f2ece0; }
+  .icon-btn:disabled{ opacity: 0.45; cursor: default; }
+  .icon-btn.correct{ background: rgba(46,125,70,0.15); border-color: var(--green); color: var(--green); }
+  .icon-btn.incorrect{ background: rgba(193,59,59,0.15); border-color: var(--red); color: var(--red); }
+  .icon-btn.listening-active{ background: var(--neutral-bg); border-color: var(--neutral-border); color: var(--ink); }
+  .icon-btn.order-active{ background: var(--paprika); border-color: var(--paprika); color: #fff; }
+
+  section.history{ display: flex; flex-direction: column; gap: 10px; }
+  .history-head{ display: flex; justify-content: space-between; align-items: baseline; padding: 0 2px; }
+  .history-head h2{ font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600; margin: 0; }
+  .history-head span{ font-size: 12px; color: var(--ink-soft); }
+  .play-row{ display: flex; gap: 6px; }
+  .play-row .icon-btn{ flex: 1; justify-content: center; padding: 5px 6px; font-size: 12px; }
+  .play-row #orderBtn{ flex: 0 0 auto; padding: 5px 8px; }
+  .play-row #deleteModeBtn{ flex: 0 0 auto; padding: 5px 8px; }
+  .play-row #deleteModeBtn.active{ background: var(--red); border-color: var(--red); color: #fff; }
+  .history-list{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    max-height: 58vh;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .group-divider{ grid-column: 1 / -1; border-top: 2px dashed var(--line-strong); margin: 4px 0; }
+  .hist-item{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    cursor: pointer;
+    user-select: none;
+    min-width: 0;
+    text-align: center;
+  }
+  .hist-item:hover{ border-color: var(--paprika); }
+  .hist-item.selected{ border-color: var(--paprika); background: rgba(193,68,14,0.07); }
+  .hist-hu{ font-size: 10px; color: var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 100%; }
+  .hist-fx{ font-size: 12px; font-weight: 600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 100%; }
+  .empty-state{
+    grid-column: 1 / -1;
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    padding: 18px 10px;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="mic-row">
+    <div class="top-controls-grid">
+      <div class="menu-wrap">
+        <button class="icon-btn menu-btn-small" id="menuBtn" aria-label="Export / Import">⋯</button>
+        <div class="menu-panel" id="menuPanel">
+          <button id="exportBtn">⬇ Exportálás (CSV)</button>
+          <button id="importBtn">⬆ Import (hu, en)</button>
+          <button id="importSwapBtn">⬆ Import (en, hu)</button>
+          <button id="deleteAllBtn">🗑 Nyelv törlése</button>
+          <input type="file" id="importFile" accept=".csv,text/csv" style="display:none;">
+        </div>
+      </div>
+      <div class="switch-wrap">
+        <label class="switch">
+          <input type="checkbox" id="continuousToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="switch-label">Folyamatos</span>
+      </div>
+      <button class="flag-btn active" id="langFlagBtn" data-lang="en" aria-label="Nyelv váltása">🇺🇸</button>
+      <button class="question-btn" id="questionBtn" aria-label="Kérdő mondat">❓</button>
+    </div>
+    <div class="mic-wrap">
+      <button id="micBtn" aria-label="Felvétel indítása">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="23"></line>
+          <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="error-status" id="errorStatus"></div>
+
+  <div class="fallback-row" id="fallbackRow" style="display:none;">
+    <input type="text" id="textInput" placeholder="Írj be egy szót">
+    <button id="textGo">Fordít</button>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-main">
+      <div class="result-text">
+        <span class="lang-tag" id="tag1"></span>
+        <div class="orig-text" id="origText" contenteditable="true"></div>
+        <span class="lang-tag" id="tag2"></span>
+        <div class="trans-text" id="transText" contenteditable="true"></div>
+      </div>
+      <div class="result-actions">
+        <button class="action-btn" id="pronounceBtn" aria-label="Kiejtés ellenőrzése">🎯</button>
+        <button class="action-btn" id="saveBtn" style="display:none;" aria-label="Mentés">＋</button>
+        <button class="action-btn" id="speakBtn" aria-label="Felolvasás">🔊</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="history">
+    <div class="history-head">
+      <h2>Szótár</h2>
+      <span id="dictCount">0 szó</span>
+    </div>
+    <div class="play-row">
+      <button class="icon-btn" id="deleteModeBtn" aria-label="Törlés mód">✕</button>
+      <button class="icon-btn" id="playFxBtn">▶ Angol</button>
+      <button class="icon-btn" id="playAllBtn">▶ Angol + Magyar</button>
+      <button class="icon-btn" id="orderBtn" aria-label="Sorrend csere">⇅</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="empty-state">Még nincs elmentett szavad.</div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const micBtn = document.getElementById('micBtn');
+  const langFlagBtn = document.getElementById('langFlagBtn');
+  const menuBtn = document.getElementById('menuBtn');
+  const menuPanel = document.getElementById('menuPanel');
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importSwapBtn = document.getElementById('importSwapBtn');
+  const importFile = document.getElementById('importFile');
+  const continuousToggle = document.getElementById('continuousToggle');
+  const questionBtn = document.getElementById('questionBtn');
+  const errorStatus = document.getElementById('errorStatus');
+  const fallbackRow = document.getElementById('fallbackRow');
+  const textInput = document.getElementById('textInput');
+  const textGo = document.getElementById('textGo');
+  const resultCard = document.getElementById('resultCard');
+  const origText = document.getElementById('origText');
+  const transText = document.getElementById('transText');
+  const deleteAllBtn = document.getElementById('deleteAllBtn');
+  const tag1 = document.getElementById('tag1');
+  const tag2 = document.getElementById('tag2');
+  const speakBtn = document.getElementById('speakBtn');
+  const pronounceBtn = document.getElementById('pronounceBtn');
+  const saveBtn = document.getElementById('saveBtn');
+  const historyList = document.getElementById('historyList');
+  const dictCount = document.getElementById('dictCount');
+  const playFxBtn = document.getElementById('playFxBtn');
+  const playAllBtn = document.getElementById('playAllBtn');
+  const orderBtn = document.getElementById('orderBtn');
+  const deleteModeBtn = document.getElementById('deleteModeBtn');
+
+  const LANGS = {
+    en: { label: 'Angol', tag: 'EN', tts: 'en-US', flag: '🇺🇸' },
+    es: { label: 'Spanyol', tag: 'ES', tts: 'es-ES', flag: '🇪🇸' },
+    de: { label: 'Német', tag: 'DE', tts: 'de-DE', flag: '🇩🇪' }
+  };
+  let selectedLang = 'en';
+
+  const STORAGE_KEY = 'hu-multi-dictionary-v1';
+  const OLD_KEY = 'hu-en-dictionary-v3';
+  let entries = []; // {id, hu, foreign, lang, updatedAt}
+  let selectedIndex = 0;
+  let pendingEntry = null;
+  let lastTarget = null;
+  let currentForeignText = null;
+  let currentForeignLang = 'en';
+  let currentSourceIsHu = true;
+  let playingMode = null;
+  let stopPlayback = false;
+  let continuousMode = false;
+  let questionMode = false;
+  let huFirst = false;
+  let deleteMode = false;
+
+  function norm(s){ return s.trim().toLowerCase().replace(/[.,!?;:¿¡]+$/,'').replace(/^[¿¡]+/,''); }
+  function makeId(){ return 'e' + Date.now() + Math.random().toString(36).slice(2,7); }
+
+  function loadDictionary(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        entries = JSON.parse(raw);
+      } else {
+        const oldRaw = localStorage.getItem(OLD_KEY);
+        if(oldRaw){
+          const parsed = JSON.parse(oldRaw);
+          const list = Array.isArray(parsed) ? parsed : Object.values(parsed);
+          entries = list.map(v => ({ id: makeId(), hu: v.hu, foreign: v.en, lang: 'en', updatedAt: v.updatedAt || Date.now() }));
+        }
+      }
+    }catch(e){ entries = []; }
+    renderHistory();
+  }
+  function saveDictionaryToDisk(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }catch(e){}
+  }
+
+  function huOf(e){ return e.swapped ? e.foreign : e.hu; }
+  function fxOf(e){ return e.swapped ? e.hu : e.foreign; }
+  function setHu(e, value){ if(e.swapped){ e.foreign = value; } else { e.hu = value; } }
+  function setFx(e, value){ if(e.swapped){ e.hu = value; } else { e.foreign = value; } }
+
+  function getVisibleEntries(){
+    return entries.filter(e => e.lang === selectedLang);
+  }
+  function findEntry(text){
+    const n = norm(text);
+    return entries.find(e => e.lang === selectedLang && (norm(huOf(e)) === n || norm(fxOf(e)) === n));
+  }
+  function escapeHtml(s){
+    const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+  }
+  function getPlaybackEntries(){
+    const visible = getVisibleEntries();
+    return visible.slice(selectedIndex, selectedIndex + 5);
+  }
+
+  function updatePlayButtonLabels(){
+    const tag = LANGS[selectedLang].tag;
+    if(playingMode !== 'fx') playFxBtn.textContent = '▶ ' + tag;
+    if(playingMode !== 'fx-hu'){
+      playAllBtn.textContent = huFirst ? ('▶ HU+' + tag) : ('▶ ' + tag + '+HU');
+    }
+    importBtn.textContent = '⬆ Import (hu, ' + tag + ')';
+    importSwapBtn.textContent = '⬆ Import (' + tag + ', hu)';
+    deleteAllBtn.textContent = '🗑 ' + tag + ' törlése';
+  }
+
+  function renderHistory(){
+    const visible = getVisibleEntries();
+    dictCount.textContent = visible.length + ' szó';
+    historyList.innerHTML = '';
+    if(!visible.length){
+      historyList.innerHTML = '<div class="empty-state">Még nincs elmentett szavad ezen a nyelven.</div>';
+      return;
+    }
+    if(selectedIndex >= visible.length) selectedIndex = 0;
+    visible.forEach((entry, index) => {
+      if(index > 0 && index % 5 === 0){
+        const divider = document.createElement('div');
+        divider.className = 'group-divider';
+        historyList.appendChild(divider);
+      }
+      const row = document.createElement('div');
+      row.className = 'hist-item' + (index === selectedIndex ? ' selected' : '');
+      row.dataset.id = entry.id;
+      row.innerHTML = `
+        <div class="hist-hu">${escapeHtml(huOf(entry))}</div>
+        <div class="hist-fx">${escapeHtml(fxOf(entry))}</div>
+      `;
+      row.addEventListener('click', () => {
+        if(deleteMode){
+          entries = entries.filter(e => e.id !== entry.id);
+          saveDictionaryToDisk();
+          renderHistory();
+          return;
+        }
+        selectedIndex = index;
+        renderHistory();
+        showResult(huOf(entry), fxOf(entry), true, entry.lang, true);
+      });
+      historyList.appendChild(row);
+    });
+  }
+
+  deleteModeBtn.addEventListener('click', () => {
+    deleteMode = !deleteMode;
+    deleteModeBtn.classList.toggle('active', deleteMode);
+  });
+
+  // --- language flag cycle ---
+  const LANG_ORDER = ['en', 'es', 'de'];
+  langFlagBtn.addEventListener('click', () => {
+    const idx = LANG_ORDER.indexOf(selectedLang);
+    selectedLang = LANG_ORDER[(idx + 1) % LANG_ORDER.length];
+    langFlagBtn.textContent = LANGS[selectedLang].flag;
+    langFlagBtn.dataset.lang = selectedLang;
+    selectedIndex = 0;
+    updatePlayButtonLabels();
+    renderHistory();
+  });
+
+  // --- export / import ---
+  function csvEscape(s, delim){
+    const specials = new RegExp('["' + delim + '\\n]');
+    if(specials.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+    return s;
+  }
+  function parseCsvLine(line, delim){
+    const result = [];
+    let cur = ''; let inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const c = line[i];
+      if(inQuotes){
+        if(c === '"'){ if(line[i+1] === '"'){ cur += '"'; i++; } else inQuotes = false; }
+        else cur += c;
+      } else {
+        if(c === '"') inQuotes = true;
+        else if(c === delim){ result.push(cur); cur = ''; }
+        else cur += c;
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+  function detectDelimiter(lines){
+    const sample = lines.slice(0, 5).join('\n');
+    const semi = (sample.match(/;/g) || []).length;
+    const comma = (sample.match(/,/g) || []).length;
+    return semi >= comma ? ';' : ',';
+  }
+
+  menuBtn.addEventListener('click', () => { menuPanel.classList.toggle('show'); });
+  document.addEventListener('click', (e) => {
+    if(!menuPanel.contains(e.target) && e.target !== menuBtn){ menuPanel.classList.remove('show'); }
+  });
+
+  exportBtn.addEventListener('click', () => {
+    const visible = getVisibleEntries();
+    const rows = visible.map(e => csvEscape(huOf(e), ';') + ';' + csvEscape(fxOf(e), ';'));
+    const csv = rows.join('\r\n');
+    let filename = prompt('Fájlnév:', 'szotar-' + selectedLang);
+    menuPanel.classList.remove('show');
+    if(filename === null) return;
+    filename = filename.trim() || ('szotar-' + selectedLang);
+    if(!/\.csv$/i.test(filename)) filename += '.csv';
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  let importReversed = false;
+  importBtn.addEventListener('click', () => {
+    importReversed = false;
+    importFile.value = '';
+    importFile.click();
+  });
+  importSwapBtn.addEventListener('click', () => {
+    importReversed = true;
+    importFile.value = '';
+    importFile.click();
+  });
+
+  importFile.addEventListener('change', () => {
+    const file = importFile.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let text = '';
+      const bytes = new Uint8Array(reader.result);
+      try{
+        if(bytes[0] === 0xFF && bytes[1] === 0xFE){
+          text = new TextDecoder('utf-16le').decode(bytes);
+        } else if(bytes[0] === 0xFE && bytes[1] === 0xFF){
+          text = new TextDecoder('utf-16be').decode(bytes);
+        } else {
+          text = new TextDecoder('utf-8').decode(bytes);
+        }
+      }catch(e){
+        text = '';
+      }
+      text = text.replace(/^\uFEFF/, '');
+      const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+      const delim = detectDelimiter(lines);
+      let startIdx = 0;
+      if(lines.length && /^magyar\s*[;,]/i.test(lines[0])) startIdx = 1;
+      for(let i = startIdx; i < lines.length; i++){
+        const row = parseCsvLine(lines[i], delim);
+        if(row.length < 2) continue;
+        const colA = row[0].trim();
+        const colB = row[1].trim();
+        if(!colA || !colB) continue;
+        const hu = importReversed ? colB : colA;
+        const foreign = importReversed ? colA : colB;
+        const existing = entries.find(e => norm(huOf(e)) === norm(hu) && e.lang === selectedLang);
+        if(existing){
+          existing.updatedAt = Date.now();
+          setFx(existing, foreign);
+        } else {
+          entries.push({ id: makeId(), hu, foreign, lang: selectedLang, updatedAt: Date.now() });
+        }
+      }
+      saveDictionaryToDisk();
+      renderHistory();
+    };
+    reader.readAsArrayBuffer(file);
+    menuPanel.classList.remove('show');
+  });
+
+  deleteAllBtn.addEventListener('click', () => {
+    const tag = LANGS[selectedLang].tag;
+    if(!confirm('Biztosan törlöd az összes ' + tag + ' szót?')) return;
+    entries = entries.filter(e => e.lang !== selectedLang);
+    saveDictionaryToDisk();
+    renderHistory();
+    menuPanel.classList.remove('show');
+  });
+
+  // --- result display ---
+  function showResult(hu, foreign, sourceIsHu, langCode, fromDictionary){
+    resultCard.classList.add('show');
+    pronounceBtn.classList.remove('correct','incorrect','listening-active');
+    currentForeignText = foreign;
+    currentForeignLang = langCode;
+    currentSourceIsHu = sourceIsHu;
+    const langInfo = LANGS[langCode] || LANGS.en;
+    if(sourceIsHu){
+      tag1.className = 'lang-tag hu'; tag1.textContent = 'HU';
+      tag2.className = 'lang-tag fx'; tag2.textContent = langInfo.tag;
+      origText.textContent = hu; transText.textContent = foreign;
+      lastTarget = { text: foreign, lang: langInfo.tts };
+    } else {
+      tag1.className = 'lang-tag fx'; tag1.textContent = langInfo.tag;
+      tag2.className = 'lang-tag hu'; tag2.textContent = 'HU';
+      origText.textContent = foreign; transText.textContent = hu;
+      lastTarget = { text: hu, lang: 'hu-HU' };
+    }
+    saveBtn.style.display = fromDictionary ? 'none' : 'inline-flex';
+    pendingEntry = fromDictionary ? null : { hu, foreign, lang: langCode };
+    return speakAsync(lastTarget.text, lastTarget.lang);
+  }
+
+  function syncEditsFromCard(){
+    const huText = currentSourceIsHu ? origText.textContent.trim() : transText.textContent.trim();
+    const fxText = currentSourceIsHu ? transText.textContent.trim() : origText.textContent.trim();
+    currentForeignText = fxText;
+    if(pendingEntry){
+      pendingEntry.hu = huText;
+      pendingEntry.foreign = fxText;
+    }
+    const langInfo = LANGS[currentForeignLang] || LANGS.en;
+    lastTarget = currentSourceIsHu ? { text: fxText, lang: langInfo.tts } : { text: huText, lang: 'hu-HU' };
+  }
+  origText.addEventListener('input', syncEditsFromCard);
+  transText.addEventListener('input', syncEditsFromCard);
+
+  function speak(text, lang){
+    try{
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang; u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function speakAsync(text, lang){
+    return new Promise((resolve) => {
+      try{
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = lang; u.rate = 0.95;
+        u.onend = resolve; u.onerror = resolve;
+        window.speechSynthesis.speak(u);
+      }catch(e){ resolve(); }
+    });
+  }
+  function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  speakBtn.addEventListener('click', () => { if(lastTarget) speak(lastTarget.text, lastTarget.lang); });
+
+  saveBtn.addEventListener('click', () => {
+    if(!pendingEntry) return;
+    const existing = entries.find(e => norm(huOf(e)) === norm(pendingEntry.hu) && e.lang === pendingEntry.lang);
+    if(existing){
+      existing.updatedAt = Date.now();
+      setFx(existing, pendingEntry.foreign);
+    } else {
+      entries.push({ id: makeId(), hu: pendingEntry.hu, foreign: pendingEntry.foreign, lang: pendingEntry.lang, updatedAt: Date.now() });
+    }
+    saveDictionaryToDisk();
+    renderHistory();
+    saveBtn.style.display = 'none';
+  });
+
+  async function runPlayback(mode){
+    if(playingMode === mode){ stopPlayback = true; return; }
+    stopPlayback = true; await wait(50); stopPlayback = false;
+    const group = getPlaybackEntries();
+    if(!group.length) return;
+    playingMode = mode;
+    playFxBtn.textContent = mode === 'fx' ? '■' : ('▶ ' + LANGS[selectedLang].tag);
+    playAllBtn.textContent = mode === 'fx-hu' ? '■' : (huFirst ? ('▶ HU+' + LANGS[selectedLang].tag) : ('▶ ' + LANGS[selectedLang].tag + '+HU'));
+    while(!stopPlayback){
+      for(const entry of group){
+        if(stopPlayback) break;
+        const langInfo = LANGS[entry.lang] || LANGS.en;
+        if(mode === 'fx-hu' && huFirst){
+          await speakAsync(huOf(entry), 'hu-HU');
+          if(stopPlayback) break;
+          await wait(250);
+          await speakAsync(fxOf(entry), langInfo.tts);
+          if(stopPlayback) break;
+        } else {
+          await speakAsync(fxOf(entry), langInfo.tts);
+          if(stopPlayback) break;
+          if(mode === 'fx-hu'){
+            await wait(250);
+            await speakAsync(huOf(entry), 'hu-HU');
+            if(stopPlayback) break;
+          }
+        }
+        await wait(350);
+      }
+    }
+    playingMode = null;
+    updatePlayButtonLabels();
+  }
+  orderBtn.addEventListener('click', () => {
+    huFirst = !huFirst;
+    orderBtn.classList.toggle('order-active', huFirst);
+    updatePlayButtonLabels();
+  });
+
+  playFxBtn.addEventListener('click', () => runPlayback('fx'));
+  playAllBtn.addEventListener('click', () => runPlayback('fx-hu'));
+
+  // --- language detection (heuristic) ---
+  const HU_WORDS = new Set(['a','az','és','vagy','de','hogy','nem','igen','én','te','ő','mi','ti','ők','ez','egy','van','vagyok','volt','lesz','kell','lehet','jó','rossz','nagy','kicsi','szeretlek','szia','köszönöm','kérem','hol','mikor','miért','hogyan','mennyi','ki','kicsoda','nagyon','is','csak','még','már','itt','ott']);
+  const EN_WORDS = new Set(['the','a','an','and','or','but','that','not','yes','no','i','you','he','she','we','they','it','this','is','are','was','were','will','can','could','good','bad','big','small','love','hello','thanks','please','where','when','why','how','much','who','what','very','just','still','here','there']);
+  const ES_WORDS = new Set(['el','la','los','las','y','o','pero','que','no','si','yo','tu','el','ella','nosotros','ellos','es','son','fue','sera','puede','bueno','malo','grande','pequeno','amor','hola','gracias','donde','cuando','como','cuanto','quien','muy','solo','todavia','aqui','alli']);
+  const DE_WORDS = new Set(['der','die','das','und','oder','aber','dass','nicht','ja','nein','ich','du','er','sie','wir','ihr','ist','sind','war','wird','kann','gut','schlecht','gross','klein','liebe','hallo','danke','bitte','wo','wann','warum','wie','wieviel','wer','was','sehr','nur','noch','hier','dort']);
+
+  function detectLanguage(text, targetCode){
+    const lower = text.toLowerCase();
+    if(/[őű]/.test(lower)) return 'hu';
+    if(targetCode === 'de' && /[äß]/.test(lower)) return 'de';
+    if(targetCode === 'es' && /[ñ¿¡]/.test(lower)) return 'es';
+    if(targetCode === 'en' && /[áéíóöúü]/.test(lower)) return 'hu';
+    const words = lower.split(/\s+/).map(w => w.replace(/[^a-zäöüßñáéíóú]/gi,''));
+    const targetSet = targetCode === 'en' ? EN_WORDS : targetCode === 'es' ? ES_WORDS : DE_WORDS;
+    let huScore = 0, targetScore = 0;
+    words.forEach(w => { if(HU_WORDS.has(w)) huScore++; if(targetSet.has(w)) targetScore++; });
+    return targetScore > huScore ? targetCode : 'hu';
+  }
+
+  async function translateGoogle(text, from, to){
+    const url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + from + "&tl=" + to + "&dt=t&q=" + encodeURIComponent(text);
+    const response = await fetch(url);
+    if(!response.ok) throw new Error('google failed');
+    const data = await response.json();
+    const segments = data && data[0];
+    if(!Array.isArray(segments)) throw new Error('no result');
+    let result = '';
+    segments.forEach(seg => { if(seg && seg[0]) result += seg[0]; });
+    result = result.trim();
+    if(!result) throw new Error('no result');
+    return result;
+  }
+
+  async function translateMyMemory(text, langpair){
+    const url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + langpair;
+    const response = await fetch(url);
+    const data = await response.json();
+    const translated = data && data.responseData && data.responseData.translatedText;
+    if(!translated) throw new Error('no result');
+    return translated.trim();
+  }
+
+  async function translate(text, langpair){
+    const [from, to] = langpair.split('|');
+    try{
+      return await translateGoogle(text, from, to);
+    }catch(e){
+      return await translateMyMemory(text, langpair);
+    }
+  }
+
+  function showError(msg){ errorStatus.textContent = msg; errorStatus.classList.add('show'); }
+  function clearError(){ errorStatus.classList.remove('show'); }
+
+  questionBtn.addEventListener('click', () => {
+    questionMode = !questionMode;
+    questionBtn.classList.toggle('active', questionMode);
+  });
+
+  async function handleUtterance(said){
+    said = said.trim();
+    if(!said) return;
+    if(questionMode && !/[?？]\s*$/.test(said)){
+      said = said + '?';
+    }
+    clearError();
+    const existing = findEntry(said);
+    if(existing){
+      const hu = huOf(existing);
+      const foreign = fxOf(existing);
+      const isHu = norm(hu) === norm(said);
+      await showResult(hu, foreign, isHu ? true : false, existing.lang, true);
+      return;
+    }
+    const lang = detectLanguage(said, selectedLang);
+    try{
+      if(lang === 'hu'){
+        const foreign = await translate(said, 'hu|' + selectedLang);
+        await showResult(said, foreign, true, selectedLang, false);
+      } else {
+        const hu = await translate(said, selectedLang + '|hu');
+        await showResult(hu, said, false, selectedLang, false);
+      }
+    }catch(e){
+      showError('Hiba történt a fordítás közben.');
+    }
+  }
+
+  // --- main speech recognition (hu-HU) ---
+  let recognition = null;
+  let listening = false;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function startRecognition(){
+    if(!recognition || listening) return;
+    try{ recognition.start(); }catch(e){}
+  }
+
+  if(SR){
+    recognition = new SR();
+    recognition.lang = 'hu-HU';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => { listening = true; micBtn.classList.add('listening'); clearError(); };
+    recognition.onend = () => {
+      listening = false;
+      micBtn.classList.remove('listening');
+      if(continuousMode){
+        setTimeout(() => { if(continuousMode) startRecognition(); }, 1200);
+      }
+    };
+    recognition.onerror = (e) => {
+      listening = false;
+      micBtn.classList.remove('listening');
+      if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+        showError('Nincs mikrofon-hozzáférés — használd a szöveges mezőt lent.');
+        fallbackRow.style.display = 'flex';
+        continuousMode = false;
+        continuousToggle.checked = false;
+      } else if(e.error !== 'no-speech' && e.error !== 'aborted'){
+        showError('Nem sikerült felismerni — próbáld újra.');
+      }
+    };
+    recognition.onresult = (e) => { handleUtterance(e.results[0][0].transcript); };
+
+    micBtn.addEventListener('click', () => {
+      if(continuousMode){
+        continuousMode = false;
+        continuousToggle.checked = false;
+        if(listening) recognition.stop();
+        return;
+      }
+      if(listening){ recognition.stop(); return; }
+      startRecognition();
+    });
+
+    continuousToggle.addEventListener('change', () => {
+      continuousMode = continuousToggle.checked;
+      if(continuousMode) startRecognition();
+      else if(listening) recognition.stop();
+    });
+  } else {
+    showError('A böngésződ nem támogatja a hangfelismerést — használd a szöveges mezőt.');
+    fallbackRow.style.display = 'flex';
+    micBtn.style.opacity = '0.4';
+    micBtn.style.cursor = 'not-allowed';
+    continuousToggle.disabled = true;
+  }
+
+  // --- pronunciation check ---
+  let checkRecognition = null;
+  if(SR){
+    checkRecognition = new SR();
+    checkRecognition.interimResults = false;
+    checkRecognition.maxAlternatives = 1;
+    checkRecognition.onstart = () => {
+      pronounceBtn.classList.remove('correct','incorrect');
+      pronounceBtn.classList.add('listening-active');
+    };
+    checkRecognition.onresult = (e) => {
+      const said = norm(e.results[0][0].transcript);
+      const target = norm(currentForeignText || '');
+      const confidence = e.results[0][0].confidence;
+      const isConfident = (typeof confidence !== 'number') || confidence >= 0.6;
+      pronounceBtn.classList.remove('listening-active','correct','incorrect');
+      pronounceBtn.classList.add((said === target && isConfident) ? 'correct' : 'incorrect');
+    };
+    checkRecognition.onerror = (e) => {
+      pronounceBtn.classList.remove('listening-active');
+      if(e.error === 'aborted'){
+        pronounceBtn.classList.remove('correct','incorrect');
+      } else {
+        pronounceBtn.classList.remove('correct');
+        pronounceBtn.classList.add('incorrect');
+      }
+    };
+    checkRecognition.onend = () => {
+      pronounceBtn.classList.remove('listening-active');
+      if(continuousMode) setTimeout(() => { if(continuousMode) startRecognition(); }, 800);
+    };
+  }
+  pronounceBtn.addEventListener('click', () => {
+    if(!checkRecognition || !currentForeignText) return;
+    if(listening) recognition.stop();
+    pronounceBtn.classList.remove('correct','incorrect');
+    checkRecognition.lang = (LANGS[currentForeignLang] || LANGS.en).tts;
+    try{ checkRecognition.start(); }catch(e){}
+  });
+
+  textGo.addEventListener('click', () => {
+    const v = textInput.value;
+    if(v.trim()) handleUtterance(v);
+    textInput.value = '';
+  });
+  textInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') textGo.click(); });
+
+  updatePlayButtonLabels();
+  loadDictionary();
+})();
+</script>
+</body>
+</html>
