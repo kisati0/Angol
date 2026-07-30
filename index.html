@@ -619,15 +619,19 @@
     0%,100%{ transform: rotate(-10deg); }
     50%{ transform: rotate(10deg); }
   }
-  @keyframes veBrush{
-    0%{ opacity: 0; transform: scale(1.8) skewX(-18deg); filter: blur(6px); }
-    60%{ opacity: 1; transform: scale(1.08) skewX(2deg); filter: blur(0px); }
-    100%{ opacity: 1; transform: scale(1) skewX(0deg); }
+  @keyframes veHandwrite{
+    0%{ clip-path: inset(0 100% 0 0); }
+    100%{ clip-path: inset(0 0% 0 0); }
   }
   .ve-word.ve-wave span{ animation: veColor 2.2s ease-in-out infinite, veBounce 1.1s ease-in-out infinite; }
   .ve-word.ve-pulse span{ animation: veColor 2.2s ease-in-out infinite, vePulseScale 1.3s ease-in-out infinite; }
   .ve-word.ve-spin span{ animation: veColor 2.2s ease-in-out infinite, veSpin 1.5s ease-in-out infinite; }
-  .ve-word.ve-brush span{ animation: veBrush 0.7s ease forwards, veColor 2.2s ease-in-out infinite; opacity: 0; }
+  .ve-word.ve-handwrite span{
+    color: #ffffff;
+    clip-path: inset(0 100% 0 0);
+    animation: veHandwrite 0.5s ease-out forwards;
+    animation-delay: var(--d, 0s);
+  }
   .ve-word.ve-paintbrush span{
     position: relative;
     overflow: hidden;
@@ -644,6 +648,48 @@
   @keyframes vePaintWipe{
     0%{ transform: translateX(0%); }
     100%{ transform: translateX(105%); }
+  }
+  .ve-word.ve-pour span{
+    position: relative;
+    color: #ffffff;
+    opacity: 0;
+    animation: veLetterAppear 0.25s ease forwards;
+    animation-delay: calc(var(--d, 0s) + 0.35s);
+  }
+  @keyframes veLetterAppear{
+    0%{ opacity: 0; }
+    100%{ opacity: 1; }
+  }
+  .ve-word.ve-pour span::before{
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: -60%;
+    height: 60%;
+    background: linear-gradient(180deg, var(--paprika), var(--gold));
+    animation: vePourFall 0.5s ease-in forwards;
+    animation-delay: var(--d, 0s);
+  }
+  .ve-word.ve-pour span::after{
+    content: '';
+    position: absolute;
+    left: 35%;
+    bottom: -2px;
+    width: 3px;
+    height: 0;
+    background: var(--paprika);
+    border-radius: 0 0 3px 3px;
+    opacity: 0;
+    animation: vePourDrip 1s ease-in forwards;
+    animation-delay: calc(var(--d, 0s) + 0.45s);
+  }
+  @keyframes vePourFall{
+    0%{ top: -60%; }
+    100%{ top: 0; }
+  }
+  @keyframes vePourDrip{
+    0%{ height: 0; opacity: 1; }
+    60%{ height: 14px; opacity: 1; }
+    100%{ height: 20px; opacity: 0; }
   }
 </style>
 </head>
@@ -1485,12 +1531,8 @@
     speak(fxSentence, langInfo.tts);
   });
 
-  visualEffectBtn.addEventListener('click', () => {
-    if(!currentForeignText){
-      flashBtnRed(visualEffectBtn);
-      return;
-    }
-    const styles = ['ve-wave', 've-pulse', 've-spin', 've-brush', 've-paintbrush'];
+  function renderVisualEffect(){
+    const styles = ['ve-wave', 've-pulse', 've-spin', 've-handwrite', 've-paintbrush', 've-pour'];
     const style = styles[Math.floor(Math.random() * styles.length)];
     const casedWord = Math.random() < 0.5 ? currentForeignText.toUpperCase() : currentForeignText.toLowerCase();
     visualEffectWord.className = 've-word ' + style;
@@ -1529,10 +1571,22 @@
     }
     const langInfo = LANGS[currentForeignLang] || LANGS.en;
     speak(currentForeignText, langInfo.tts);
+  }
+
+  visualEffectBtn.addEventListener('click', () => {
+    if(!currentForeignText){
+      flashBtnRed(visualEffectBtn);
+      return;
+    }
+    renderVisualEffect();
   });
-  visualEffectCloseBtn.addEventListener('click', () => { visualEffectOverlay.classList.remove('show'); });
+  visualEffectCloseBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    visualEffectOverlay.classList.remove('show');
+  });
   visualEffectOverlay.addEventListener('click', (e) => {
-    if(e.target === visualEffectOverlay) visualEffectOverlay.classList.remove('show');
+    if(e.target === visualEffectCloseBtn) return;
+    renderVisualEffect();
   });
 
   saveBtn.addEventListener('click', () => {
