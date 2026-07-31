@@ -148,6 +148,18 @@
     box-shadow: 0 8px 20px rgba(193,68,14,0.28);
     transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
   }
+  #micBtn::before{
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    border: 3px dashed rgba(193,68,14,0.45);
+    pointer-events: none;
+    transition: border-color 0.2s ease;
+  }
+  #micBtn.listening::before{
+    border-color: rgba(217,164,65,0.85);
+  }
   #micBtn:active{ transform: scale(0.96); }
   #micQuestionBadge{
     position: absolute;
@@ -156,9 +168,9 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: #ffffff;
+    background: var(--card);
     color: var(--paprika-deep);
-    border: 2px solid var(--paprika);
+    border: 3px dashed rgba(193,68,14,0.55);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -166,6 +178,12 @@
     font-weight: 700;
     cursor: pointer;
     z-index: 2;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+  #micQuestionBadge.listening{
+    border-color: rgba(217,164,65,0.9);
+    background: var(--gold);
+    color: #fff;
   }
   #micQuestionBadge:active{ transform: scale(0.92); }
   #micBtn.listening{
@@ -2179,14 +2197,16 @@
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => { listening = true; micBtn.classList.add('listening'); clearError(); };
+    recognition.onstart = () => { listening = true; micBtn.classList.add('listening'); micQuestionBadge.classList.add('listening'); clearError(); };
     recognition.onend = () => {
       listening = false;
       micBtn.classList.remove('listening');
+      micQuestionBadge.classList.remove('listening');
     };
     recognition.onerror = (e) => {
       listening = false;
       micBtn.classList.remove('listening');
+      micQuestionBadge.classList.remove('listening');
       if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
         showError('Nincs mikrofon-hozzáférés — használd a szöveges mezőt lent.');
         fallbackRow.style.display = 'flex';
