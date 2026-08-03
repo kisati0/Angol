@@ -3416,7 +3416,7 @@
   const themeAreaOn = {};
   function themeKey(area){ return 'hu-multi-theme-' + area + '-v1'; }
   function themeTargets(area){
-    if(area === 'main') return [document.body];
+    if(area === 'main') return [document.documentElement];
     if(area === 'memory') return [memoryOverlay, document.querySelector('.memory-panel')];
     if(area === 'practice') return [document.querySelector('.practice-overlay')];
     if(area === 'flashcard') return [flashcardOverlay];
@@ -3431,6 +3431,12 @@
       el.style.backgroundImage = css;
       el.style.backgroundRepeat = 'no-repeat';
     });
+    if(area === 'main'){
+      // <body> is only as tall as the viewport, so on phones with a camera
+      // cutout it stops short of the very top. Painting on <html> covers the
+      // whole canvas — but only if <body> stops hiding it.
+      document.body.style.backgroundColor = 'transparent';
+    }
   }
   function clearAreaTheme(area){
     themeTargets(area).forEach(el => {
@@ -3438,6 +3444,7 @@
       el.style.backgroundImage = '';
       el.style.backgroundRepeat = '';
     });
+    if(area === 'main') document.body.style.backgroundColor = '';
   }
   function setAreaTheme(area, on, reshuffle){
     themeAreaOn[area] = on;
