@@ -423,8 +423,9 @@
   .history-scroll-edge{
     position: absolute;
     top: 0; left: -18px; right: -18px;
-    height: 2px;
+    height: 4px;
     background: rgba(0,0,0,0.55);
+    border-top: 1px solid rgba(224,105,47,0.7);
     box-shadow: 0 6px 10px -2px rgba(0,0,0,0.5);
     opacity: 0;
     transition: opacity 0.15s ease;
@@ -478,7 +479,7 @@
   .memory-overlay{
     display: none;
     position: fixed;
-    inset: 0;
+    inset: -2px;
     background: var(--bg);
     z-index: 100;
   }
@@ -742,7 +743,7 @@
   .practice-overlay{
     display: none;
     position: fixed;
-    inset: 0;
+    inset: -2px;
     background: var(--bg);
     z-index: 100;
     overflow-y: auto;
@@ -1149,7 +1150,7 @@
   .flashcard-overlay{
     display: none;
     position: fixed;
-    inset: 0;
+    inset: -2px;
     background: var(--bg);
     z-index: 130;
     align-items: center;
