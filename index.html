@@ -3315,7 +3315,7 @@
   const themeAreaOn = {};
   function themeKey(area){ return 'hu-multi-theme-' + area + '-v1'; }
   function themeTargets(area){
-    if(area === 'main') return [document.body];
+    if(area === 'main') return [document.documentElement, document.body];
     if(area === 'memory') return [memoryOverlay, document.querySelector('.memory-panel')];
     if(area === 'practice') return [document.querySelector('.practice-overlay')];
     if(area === 'flashcard') return [flashcardOverlay];
@@ -3328,10 +3328,7 @@
     themeTargets(area).forEach(el => {
       if(!el) return;
       el.style.backgroundImage = css;
-      // Without these the gradient can tile or scroll with the content,
-      // which is what made the top of the screen look cut off.
       el.style.backgroundRepeat = 'no-repeat';
-      el.style.backgroundAttachment = 'fixed';
       el.style.backgroundSize = '100% 100%';
       el.style.backgroundPosition = 'top left';
     });
@@ -3341,7 +3338,6 @@
       if(!el) return;
       el.style.backgroundImage = '';
       el.style.backgroundRepeat = '';
-      el.style.backgroundAttachment = '';
       el.style.backgroundSize = '';
       el.style.backgroundPosition = '';
     });
