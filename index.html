@@ -422,10 +422,10 @@
   }
   .history-scroll-edge{
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0; left: -18px; right: -18px;
     height: 2px;
-    background: var(--ink-soft);
-    box-shadow: 0 6px 10px -2px rgba(0,0,0,0.45);
+    background: rgba(0,0,0,0.55);
+    box-shadow: 0 6px 10px -2px rgba(0,0,0,0.5);
     opacity: 0;
     transition: opacity 0.15s ease;
     z-index: 3;
@@ -2090,6 +2090,7 @@
     memoryLangTag.classList.remove('find-on');
     noteInsertMode = false;
     memoryNoteBtn.classList.remove('find-on');
+    reshuffleAreaTheme('main');
   }
   memoryCloseBtn.addEventListener('click', closeMemoryOverlay);
   memoryOverlay.addEventListener('click', (e) => {
@@ -2730,6 +2731,7 @@
   visualEffectCloseBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     visualEffectOverlay.classList.remove('show');
+    reshuffleAreaTheme('main');
   });
   let veJustSwiped = false;
   visualEffectOverlay.addEventListener('click', (e) => {
@@ -2822,6 +2824,7 @@
     flashcard.style.transition = '';
     flashcard.style.transform = '';
     flashcard.style.opacity = '';
+    reshuffleAreaTheme('main');
   }
 
   flashcardBtn.addEventListener('click', () => {
@@ -3279,7 +3282,10 @@
     updateApiUI();
     apiOverlay.classList.add('show');
   });
-  apiCloseBtn.addEventListener('click', () => apiOverlay.classList.remove('show'));
+  apiCloseBtn.addEventListener('click', () => {
+    apiOverlay.classList.remove('show');
+    reshuffleAreaTheme('main');
+  });
 
   // --- Splotchy theme, toggled separately per screen ---
   // Ten preset combinations, two or three soft colour blobs each — never all
@@ -3315,7 +3321,7 @@
   const themeAreaOn = {};
   function themeKey(area){ return 'hu-multi-theme-' + area + '-v1'; }
   function themeTargets(area){
-    if(area === 'main') return [document.documentElement, document.body];
+    if(area === 'main') return [document.body];
     if(area === 'memory') return [memoryOverlay, document.querySelector('.memory-panel')];
     if(area === 'practice') return [document.querySelector('.practice-overlay')];
     if(area === 'flashcard') return [flashcardOverlay];
@@ -3329,8 +3335,6 @@
       if(!el) return;
       el.style.backgroundImage = css;
       el.style.backgroundRepeat = 'no-repeat';
-      el.style.backgroundSize = '100% 100%';
-      el.style.backgroundPosition = 'top left';
     });
   }
   function clearAreaTheme(area){
@@ -3338,8 +3342,6 @@
       if(!el) return;
       el.style.backgroundImage = '';
       el.style.backgroundRepeat = '';
-      el.style.backgroundSize = '';
-      el.style.backgroundPosition = '';
     });
   }
   function setAreaTheme(area, on, reshuffle){
@@ -3564,6 +3566,7 @@
   function closePracticeOverlay(){
     practiceOverlay.classList.remove('show');
     if(practiceRecognitionListening) try{ practiceRecognition.stop(); }catch(e){}
+    reshuffleAreaTheme('main');
   }
 
   function renderPracticeWord(){
