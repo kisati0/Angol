@@ -48,7 +48,7 @@
     max-width: 460px;
     height: 100%;
     /* Keep clear of the camera cutout now that the app draws underneath it. */
-    padding: calc(14px + env(safe-area-inset-top, 0px)) 18px calc(20px + env(safe-area-inset-bottom, 0px));
+    padding: calc(14px + var(--top-offset, 0px)) 18px calc(20px + var(--bottom-offset, 0px));
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -497,7 +497,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 8px;
+    padding: calc(14px + var(--top-offset, 0px)) 16px 8px;
   }
   .memory-lang-frame.find-on{
     box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 0 16px 4px rgba(255,255,255,0.35);
@@ -753,7 +753,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    padding: calc(8px + env(safe-area-inset-top, 0px)) 18px calc(8px + env(safe-area-inset-bottom, 0px));
+    padding: calc(8px + var(--top-offset, 0px)) 18px calc(8px + var(--bottom-offset, 0px));
     max-width: 460px;
     margin: 0 auto;
     min-height: 100%;
@@ -945,17 +945,17 @@
     font-size: 18px;
   }
   #visualEffectCloseBtn{
-    top: calc(18px + env(safe-area-inset-top, 0px));
+    top: calc(18px + var(--top-offset, 0px));
     width: 48px;
     height: 48px;
   }
   #visualEffectExampleBtn{
-    top: calc(74px + env(safe-area-inset-top, 0px));
+    top: calc(74px + var(--top-offset, 0px));
     width: 48px;
     height: 48px;
   }
   #visualEffectHuBtn{
-    top: calc(130px + env(safe-area-inset-top, 0px));
+    top: calc(130px + var(--top-offset, 0px));
     width: 48px;
     height: 68px;
     font-size: 16px;
@@ -1155,8 +1155,8 @@
     z-index: 130;
     align-items: center;
     justify-content: center;
-    padding: calc(18px + env(safe-area-inset-top, 0px)) 18px 18px;
-    padding-bottom: calc(20vh + env(safe-area-inset-bottom, 0px));
+    padding: calc(18px + var(--top-offset, 0px)) 18px 18px;
+    padding-bottom: calc(20vh + var(--bottom-offset, 0px));
   }
   .flashcard-overlay.show{ display: flex; }
   .flashcard-overlay{ perspective: 1200px; }
@@ -1206,6 +1206,21 @@
     color: var(--ink-soft);
     opacity: 0.6;
   }
+  .margin-row{
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .margin-row span{ flex: 1; font-size: 14px; color: var(--ink); }
+  .margin-row b{
+    min-width: 48px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    color: var(--paprika-deep);
+  }
+  .margin-row .icon-btn{ padding: 8px 14px; font-size: 16px; }
   .api-list{
     position: relative;
     z-index: 1;
@@ -1222,7 +1237,7 @@
   }
   #fcMuteBtn{
     position: fixed;
-    top: calc(14px + env(safe-area-inset-top, 0px));
+    top: calc(14px + var(--top-offset, 0px));
     left: 14px;
     width: 38px;
     height: 38px;
@@ -1264,6 +1279,7 @@
         <div class="menu-panel" id="menuPanel">
           <button id="memoryOpenBtn">🧠 Memória</button>
           <button id="apiOpenBtn">🌐 Fordító API</button>
+          <button id="marginOpenBtn">📏 Képernyő margó</button>
           <button class="menu-section-label" id="themeSectionToggle">🎨 Téma</button>
           <div class="theme-area-list" id="themeAreaList">
             <button class="theme-area-btn" data-area="main">Főoldal <span>Ki</span></button>
@@ -1327,6 +1343,28 @@
   <div class="fallback-row" id="fallbackRow" style="display:none;">
     <input type="text" id="textInput" placeholder="Írj be egy szót">
     <button id="textGo">Fordít</button>
+  </div>
+
+  <div class="link-overlay" id="marginOverlay">
+    <div class="link-panel">
+      <div class="link-title">Felső és alsó margó</div>
+      <div class="margin-row">
+        <span>Felül</span>
+        <button class="icon-btn" data-adj="top" data-delta="-4">−</button>
+        <b id="topOffsetVal">0</b>
+        <button class="icon-btn" data-adj="top" data-delta="4">+</button>
+      </div>
+      <div class="margin-row">
+        <span>Alul</span>
+        <button class="icon-btn" data-adj="bottom" data-delta="-4">−</button>
+        <b id="bottomOffsetVal">0</b>
+        <button class="icon-btn" data-adj="bottom" data-delta="4">+</button>
+      </div>
+      <div class="link-btn-row">
+        <button class="icon-btn" id="marginResetBtn">Alaphelyzet</button>
+        <button class="icon-btn" id="marginCloseBtn">Kész</button>
+      </div>
+    </div>
   </div>
 
   <div class="link-overlay" id="apiOverlay">
@@ -3283,6 +3321,62 @@
     updateApiUI();
     apiOverlay.classList.add('show');
   });
+
+  // --- Screen margins ---
+  // Fullscreen PWAs on phones with a camera cutout don't report a safe area,
+  // so the offset is adjustable by hand and remembered.
+  const MARGIN_TOP_KEY = 'hu-multi-margin-top-v1';
+  const MARGIN_BOTTOM_KEY = 'hu-multi-margin-bottom-v1';
+  let topOffset = 0, bottomOffset = 0;
+  const marginOverlay = document.getElementById('marginOverlay');
+  const marginOpenBtn = document.getElementById('marginOpenBtn');
+  const marginCloseBtn = document.getElementById('marginCloseBtn');
+  const marginResetBtn = document.getElementById('marginResetBtn');
+  const topOffsetVal = document.getElementById('topOffsetVal');
+  const bottomOffsetVal = document.getElementById('bottomOffsetVal');
+
+  function applyOffsets(){
+    document.documentElement.style.setProperty('--top-offset', topOffset + 'px');
+    document.documentElement.style.setProperty('--bottom-offset', bottomOffset + 'px');
+    topOffsetVal.textContent = topOffset;
+    bottomOffsetVal.textContent = bottomOffset;
+  }
+  function loadOffsets(){
+    try{
+      topOffset = parseInt(localStorage.getItem(MARGIN_TOP_KEY) || '0', 10) || 0;
+      bottomOffset = parseInt(localStorage.getItem(MARGIN_BOTTOM_KEY) || '0', 10) || 0;
+    }catch(e){}
+    applyOffsets();
+  }
+  function saveOffsets(){
+    try{
+      localStorage.setItem(MARGIN_TOP_KEY, String(topOffset));
+      localStorage.setItem(MARGIN_BOTTOM_KEY, String(bottomOffset));
+    }catch(e){}
+  }
+  marginOpenBtn.addEventListener('click', () => {
+    menuPanel.classList.remove('show');
+    closeThemeSubmenu();
+    applyOffsets();
+    marginOverlay.classList.add('show');
+  });
+  marginCloseBtn.addEventListener('click', () => marginOverlay.classList.remove('show'));
+  marginOverlay.addEventListener('click', (e) => {
+    if(e.target === marginOverlay) marginOverlay.classList.remove('show');
+  });
+  marginResetBtn.addEventListener('click', () => {
+    topOffset = 0; bottomOffset = 0;
+    applyOffsets(); saveOffsets();
+  });
+  document.querySelectorAll('[data-adj]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const delta = parseInt(btn.dataset.delta, 10);
+      if(btn.dataset.adj === 'top') topOffset = Math.max(0, Math.min(120, topOffset + delta));
+      else bottomOffset = Math.max(0, Math.min(120, bottomOffset + delta));
+      applyOffsets(); saveOffsets();
+    });
+  });
+  loadOffsets();
   apiCloseBtn.addEventListener('click', () => {
     apiOverlay.classList.remove('show');
     reshuffleAreaTheme('main');
