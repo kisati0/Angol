@@ -3342,10 +3342,28 @@
     bottomOffsetVal.textContent = bottomOffset;
   }
   function loadOffsets(){
+    let hasStored = false;
     try{
-      topOffset = parseInt(localStorage.getItem(MARGIN_TOP_KEY) || '0', 10) || 0;
-      bottomOffset = parseInt(localStorage.getItem(MARGIN_BOTTOM_KEY) || '0', 10) || 0;
+      const t = localStorage.getItem(MARGIN_TOP_KEY);
+      const bm = localStorage.getItem(MARGIN_BOTTOM_KEY);
+      hasStored = (t !== null || bm !== null);
+      topOffset = parseInt(t || '0', 10) || 0;
+      bottomOffset = parseInt(bm || '0', 10) || 0;
     }catch(e){}
+
+    if(!hasStored){
+      // Installed fullscreen apps paint under the camera cutout, and the
+      // system reports no safe area there, so start with a sensible gap that
+      // can then be fine-tuned from the menu.
+      let fullscreen = false;
+      try{
+        fullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
+      }catch(e){}
+      if(fullscreen){
+        topOffset = 36;
+        bottomOffset = 12;
+      }
+    }
     applyOffsets();
   }
   function saveOffsets(){
