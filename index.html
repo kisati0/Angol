@@ -177,10 +177,11 @@
   /* While recording the button keeps its own colours; only a green halo
      spreads outwards from the ring. The two controls glow independently. */
   #micBtn.listening{
-    box-shadow: 0 0 0 4px rgba(76,175,109,0.30),
-                0 0 22px 8px rgba(76,175,109,0.45),
-                0 8px 20px rgba(0,0,0,0.18);
     animation: micGlow 1.4s ease-in-out infinite;
+  }
+  #micBtn.listening::before{
+    box-shadow: 0 0 0 4px rgba(76,175,109,0.30),
+                0 0 22px 8px rgba(76,175,109,0.45);
   }
   #micQuestionBadge.listening{
     box-shadow: 0 0 0 3px rgba(76,175,109,0.30),
@@ -446,6 +447,9 @@
   .memory-lang-frame.find-on{
     box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 0 16px 4px rgba(255,255,255,0.35);
   }
+  #practiceNextGroupBtn.flash-white{
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 0 16px 4px rgba(255,255,255,0.35);
+  }
   .find-hit{
     outline: 2px solid var(--paprika);
     outline-offset: -2px;
@@ -551,7 +555,8 @@
     gap: 6px;
     padding: 0 16px 10px;
   }
-  .memory-toolbar .icon-btn{ flex: 1; justify-content: center; font-size: 12px; padding: 6px 6px; }
+  .memory-toolbar .mem-toolbar-btn{ flex: 1; justify-content: center; font-size: 11px; padding: 6px 4px; }
+  #memoryNoteBtn{ flex-shrink: 0; }
   .memory-table-wrap{
     flex: 1;
     min-height: 0;
@@ -633,6 +638,15 @@
     box-shadow: 0 0 0 1px rgba(224,105,47,0.3);
     border-radius: 6px;
   }
+  .memory-note-row td{ background: rgba(224,105,47,0.05); }
+  .memory-note-text{
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .memory-note-text:empty::before{
+    content: "Megjegyzés…";
+    opacity: 0.5;
+  }
   .memory-del{
     width: 28px; height: 28px;
     border-radius: 50%;
@@ -708,6 +722,13 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+  #practiceNextGroupBtn{
+    background: var(--bg);
+    border: 2px solid var(--paprika);
+    color: var(--paprika-deep);
+    font-weight: 700;
+    transition: box-shadow 0.15s ease;
   }
   .practice-progress{
     flex: 1;
@@ -1007,6 +1028,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
   }
   .link-panel::before{
     content: "";
@@ -1088,6 +1110,7 @@
     max-width: 424px;
     min-height: 220px;
     transform-style: preserve-3d;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -1161,6 +1184,29 @@
     transition: opacity 0.2s ease;
   }
   #fcMuteBtn.muted{ opacity: 0.55; }
+  /* Splotchy theme background: ten soft colour blobs of varying size and
+     position, toggled from the menu. Applied to every screen that would
+     otherwise show a single flat --bg colour. */
+  html.theme-on body,
+  html.theme-on .memory-overlay,
+  html.theme-on .memory-panel,
+  html.theme-on .practice-overlay,
+  html.theme-on .flashcard-overlay{
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(circle at 8% 12%,  rgba(224,105,47,0.24) 0%, rgba(224,105,47,0.09) 30%, transparent 60%),
+      radial-gradient(circle at 82% 6%,  rgba(90,169,255,0.22) 0%, rgba(90,169,255,0.08) 28%, transparent 55%),
+      radial-gradient(circle at 92% 34%, rgba(76,175,109,0.20) 0%, rgba(76,175,109,0.07) 24%, transparent 48%),
+      radial-gradient(circle at 18% 78%, rgba(167,139,250,0.22) 0%, rgba(167,139,250,0.08) 28%, transparent 56%),
+      radial-gradient(circle at 65% 88%, rgba(255,209,102,0.20) 0%, rgba(255,209,102,0.07) 26%, transparent 50%),
+      radial-gradient(circle at 48% 46%, rgba(78,205,196,0.16) 0%, rgba(78,205,196,0.05) 32%, transparent 62%),
+      radial-gradient(circle at 4% 48%,  rgba(255,107,107,0.18) 0%, rgba(255,107,107,0.06) 20%, transparent 40%),
+      radial-gradient(circle at 96% 68%, rgba(46,125,158,0.20) 0%, rgba(46,125,158,0.07) 22%, transparent 42%),
+      radial-gradient(circle at 30% 4%,  rgba(255,143,171,0.18) 0%, rgba(255,143,171,0.06) 18%, transparent 36%),
+      radial-gradient(circle at 60% 22%, rgba(217,164,65,0.16) 0%, rgba(217,164,65,0.05) 26%, transparent 50%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
 </style>
 </head>
 <body>
@@ -1174,6 +1220,7 @@
         <div class="menu-panel" id="menuPanel">
           <button id="memoryOpenBtn">🧠 Memória</button>
           <button id="apiOpenBtn">🌐 Fordító API</button>
+          <button id="themeToggleBtn">🎨 Téma: <span id="themeToggleState">Ki</span></button>
           <div class="menu-sep"></div>
           <button class="lang-option" data-lang="en"><span>🇺🇸</span>Angol</button>
           <button class="lang-option" data-lang="es"><span>🇪🇸</span>Spanyol</button>
@@ -1316,8 +1363,9 @@
           </div>
         </div>
         <div class="memory-toolbar">
-          <button class="icon-btn" id="memoryImportBtn">⬆ Import (CSV)</button>
-          <button class="icon-btn" id="memoryExportBtn">⬇ Export</button>
+          <button class="memory-lang-frame" id="memoryNoteBtn" aria-label="Megjegyzés sor beszúrása">📝</button>
+          <button class="icon-btn mem-toolbar-btn" id="memoryImportBtn">⬆ Import (CSV)</button>
+          <button class="icon-btn mem-toolbar-btn" id="memoryExportBtn">⬇ Export</button>
         </div>
       </div>
       <div class="memory-table-wrap" id="memoryTableWrap">
@@ -1448,6 +1496,7 @@
   let exampleFxLang = 'en-US';
   let exampleIndex = 0;
   let exampleTotal = 0;
+  let activeExampleEntry = null;   // the memory row behind the sentence on screen
   let playingMode = null;
   let stopPlayback = false;
   let huFirst = false;
@@ -1539,6 +1588,7 @@
   let memorySelectMode = false;
   let memoryTrashMode = false;
   let findMode = false;        // toggled by the language badge
+  let noteInsertMode = false;  // toggled by the note button; taps insert a comment row
   let findTerm = '';           // the word currently being looked up
 
   // Match on whole words so "day" doesn't also hit "days off" style partials
@@ -1615,8 +1665,25 @@
     findMode = !findMode;
     memoryLangTag.classList.toggle('find-on', findMode);
     if(!findMode) findTerm = '';
+    if(findMode && noteInsertMode){
+      noteInsertMode = false;
+      memoryNoteBtn.classList.remove('find-on');
+    }
     renderMemoryTable();
   });
+
+  const memoryNoteBtn = document.getElementById('memoryNoteBtn');
+  memoryNoteBtn.addEventListener('click', () => {
+    noteInsertMode = !noteInsertMode;
+    memoryNoteBtn.classList.toggle('find-on', noteInsertMode);
+    if(noteInsertMode && findMode){
+      findMode = false;
+      findTerm = '';
+      memoryLangTag.classList.remove('find-on');
+    }
+    renderMemoryTable();
+  });
+
   let memorySelectedIds = new Set();
 
   function isMemorySentenceEntry(e){
@@ -1671,6 +1738,46 @@
     let stopAfterThisRow = false;
     rows.forEach(({ entry, index }) => {
       if(stopAfterThisRow) return;   // hide everything after the results block
+
+      // A note row: unnumbered, undivided, just a free-text comment line.
+      if(entry.isNote){
+        const noteTr = document.createElement('tr');
+        noteTr.dataset.id = entry.id;
+        noteTr.className = 'memory-note-row';
+        const noteNumTd = document.createElement('td');
+        noteNumTd.className = 'memory-num-cell';
+        noteTr.appendChild(noteNumTd);
+        if(memoryTrashMode){
+          const noteDelTd = document.createElement('td');
+          noteDelTd.className = 'memory-del-cell';
+          const noteDelBtn = document.createElement('button');
+          noteDelBtn.className = 'memory-del';
+          noteDelBtn.textContent = '✕';
+          noteDelBtn.setAttribute('aria-label', 'Törlés');
+          noteDelBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            memoryEntries = memoryEntries.filter(e => e.id !== entry.id);
+            saveMemoryToDisk();
+            renderMemoryTable();
+          });
+          noteDelTd.appendChild(noteDelBtn);
+          noteTr.appendChild(noteDelTd);
+        }
+        const noteTd = document.createElement('td');
+        noteTd.className = 'mem-edit memory-note-text';
+        noteTd.colSpan = 5;
+        noteTd.contentEditable = noteInsertMode ? 'false' : 'true';
+        noteTd.textContent = entry.note || '';
+        noteTd.addEventListener('input', () => {
+          entry.note = noteTd.textContent;
+          entry.updatedAt = Date.now();
+          saveMemoryToDisk();
+        });
+        noteTr.appendChild(noteTd);
+        memoryTableBody.appendChild(noteTr);
+        return;
+      }
+
       const isFindRow = findMode && findTerm &&
         (String(entry.hu || '').trim().toLowerCase() === findTerm.toLowerCase() ||
          String(entry.foreign || '').trim().toLowerCase() === findTerm.toLowerCase());
@@ -1688,11 +1795,11 @@
 
       const huTd = document.createElement('td');
       huTd.className = 'mem-edit';
-      huTd.contentEditable = (memorySelectMode || findMode) ? 'false' : 'true';
+      huTd.contentEditable = (memorySelectMode || findMode || noteInsertMode) ? 'false' : 'true';
       huTd.textContent = entry.hu || '';
       const fxTd = document.createElement('td');
       fxTd.className = 'mem-edit';
-      fxTd.contentEditable = (memorySelectMode || findMode) ? 'false' : 'true';
+      fxTd.contentEditable = (memorySelectMode || findMode || noteInsertMode) ? 'false' : 'true';
       fxTd.textContent = entry.foreign || '';
 
       // In find mode a tap on a word looks it up instead of editing it.
@@ -1713,11 +1820,11 @@
       }
       const huSentTd = document.createElement('td');
       huSentTd.className = 'mem-edit';
-      huSentTd.contentEditable = memorySelectMode ? 'false' : 'true';
+      huSentTd.contentEditable = (memorySelectMode || noteInsertMode) ? 'false' : 'true';
       huSentTd.textContent = entry.huSentence || '';
       const fxSentTd = document.createElement('td');
       fxSentTd.className = 'mem-edit';
-      fxSentTd.contentEditable = memorySelectMode ? 'false' : 'true';
+      fxSentTd.contentEditable = (memorySelectMode || noteInsertMode) ? 'false' : 'true';
       fxSentTd.textContent = entry.fxSentence || '';
 
       const linkTd = document.createElement('td');
@@ -1789,6 +1896,15 @@
         renderMemoryTable();
       });
       tr.addEventListener('click', () => {
+        if(noteInsertMode){
+          const idx = memoryEntries.indexOf(entry);
+          if(idx < 0) return;
+          const note = { id: makeId(), isNote: true, note: '', lang: selectedLang, updatedAt: Date.now() };
+          memoryEntries.splice(idx, 0, note);
+          saveMemoryToDisk();
+          renderMemoryTable();
+          return;
+        }
         if(!memorySelectMode) return;
         if(memorySelectedIds.has(entry.id)){
           memorySelectedIds.delete(entry.id);
@@ -1914,7 +2030,8 @@
     findMode = false;
     findTerm = '';
     memoryLangTag.classList.remove('find-on');
-    findResults.classList.remove('show');
+    noteInsertMode = false;
+    memoryNoteBtn.classList.remove('find-on');
   }
   memoryCloseBtn.addEventListener('click', closeMemoryOverlay);
   memoryOverlay.addEventListener('click', (e) => {
@@ -2265,8 +2382,25 @@
   }
 
   function syncEditsFromCard(){
-    const huText = currentSourceIsHu ? origText.textContent.trim() : transText.textContent.trim();
-    const fxText = currentSourceIsHu ? transText.textContent.trim() : origText.textContent.trim();
+    const huRaw = currentSourceIsHu ? origText.textContent.trim() : transText.textContent.trim();
+    const fxRaw = currentSourceIsHu ? transText.textContent.trim() : origText.textContent.trim();
+    // The "(1/2)" style counter always sits on the Hungarian side — strip it
+    // before treating the text as real content.
+    const huText = huRaw.replace(/\s*\(\d+\/\d+\)\s*$/, '');
+    const fxText = fxRaw;
+
+    if(exampleModeActive && activeExampleEntry){
+      // While a sentence is showing, edits belong to that memory sentence —
+      // never to the word itself.
+      activeExampleEntry.huSentence = huText;
+      activeExampleEntry.fxSentence = fxText;
+      exampleFxSentence = fxText;
+      const langInfo = LANGS[currentForeignLang] || LANGS.en;
+      lastTarget = { text: fxText, lang: langInfo.tts };
+      updateTranslateBtnLabel();
+      return;
+    }
+
     currentForeignText = fxText;
     if(pendingEntry){
       pendingEntry.hu = huText;
@@ -2284,24 +2418,35 @@
   origText.addEventListener('input', syncEditsFromCard);
   transText.addEventListener('input', syncEditsFromCard);
 
+  // Parenthetical asides (e.g. clarifying notes) are never read aloud.
+  function stripParens(text){
+    return String(text || '')
+      .replace(/\([^)]*\)/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
   function speak(text, lang){
+    const clean = stripParens(text);
+    if(!clean) return;
     try{
       window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
+      const u = new SpeechSynthesisUtterance(clean);
       u.lang = lang; u.rate = 0.95;
       window.speechSynthesis.speak(u);
     }catch(e){}
   }
   function speakAsync(text, lang){
+    const clean = stripParens(text);
+    if(!clean) return Promise.resolve();
     return new Promise((resolve) => {
       let done = false;
       const finish = () => { if(done) return; done = true; clearTimeout(guard); resolve(); };
       // Safety net: some mobile browsers occasionally never fire onend/onerror,
       // which would otherwise leave this promise (and its awaiter) hanging forever.
-      const guard = setTimeout(finish, Math.max(5000, String(text).length * 150));
+      const guard = setTimeout(finish, Math.max(5000, clean.length * 150));
       try{
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
+        const u = new SpeechSynthesisUtterance(clean);
         u.lang = lang; u.rate = 0.95;
         u.onend = finish; u.onerror = finish;
         window.speechSynthesis.speak(u);
@@ -2352,6 +2497,7 @@
     if(!hits.length) return null;
     const i = ((idx || 0) % hits.length + hits.length) % hits.length;
     const hit = hits[i];
+    activeExampleEntry = hit;
     const langInfo = LANGS[currentForeignLang] || LANGS.en;
     const fxSentence = hit.fxSentence;
     const huSentence = hit.huSentence;
@@ -2878,6 +3024,14 @@
   }
 
   saveBtn.addEventListener('click', () => {
+    // While a sentence is on screen, Save commits it into Memory — the word
+    // in the Szótár is untouched.
+    if(exampleModeActive && activeExampleEntry){
+      activeExampleEntry.updatedAt = Date.now();
+      saveMemoryToDisk();
+      renderMemoryTable();
+      return;
+    }
     if(!pendingEntry){ flashBtnRed(saveBtn); return; }
     let existing = null;
     if(pendingSourceId){
@@ -2887,18 +3041,27 @@
       existing = entries.find(e => norm(huOf(e)) === norm(pendingEntry.hu) && e.lang === pendingEntry.lang);
     }
     if(existing){
+      const oldHu = huOf(existing);
       setHu(existing, pendingEntry.hu);
       setFx(existing, pendingEntry.foreign);
       existing.updatedAt = Date.now();
       pendingSourceId = existing.id;
-      if(existing.sourceMemoryId){
-        const linkedMem = memoryEntries.find(e => e.id === existing.sourceMemoryId);
-        if(linkedMem){
-          setHu(linkedMem, pendingEntry.hu);
-          setFx(linkedMem, pendingEntry.foreign);
-          linkedMem.updatedAt = Date.now();
-          saveMemoryToDisk();
-        }
+
+      // Keep a matching Memory word entry in sync too — first via the explicit
+      // link (if this word came from Memory), otherwise by matching the word
+      // as it was before this edit.
+      let linkedMem = existing.sourceMemoryId
+        ? memoryEntries.find(e => e.id === existing.sourceMemoryId)
+        : null;
+      if(!linkedMem){
+        linkedMem = memoryEntries.find(e =>
+          e.lang === pendingEntry.lang && !e.isNote && e.hu && norm(e.hu) === norm(oldHu));
+      }
+      if(linkedMem){
+        setHu(linkedMem, pendingEntry.hu);
+        setFx(linkedMem, pendingEntry.foreign);
+        linkedMem.updatedAt = Date.now();
+        saveMemoryToDisk();
       }
     } else {
       const created = { id: makeId(), hu: pendingEntry.hu, foreign: pendingEntry.foreign, lang: pendingEntry.lang, updatedAt: Date.now() };
@@ -3050,6 +3213,25 @@
     apiOverlay.classList.add('show');
   });
   apiCloseBtn.addEventListener('click', () => apiOverlay.classList.remove('show'));
+
+  const THEME_ON_KEY = 'hu-multi-theme-on-v1';
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  const themeToggleState = document.getElementById('themeToggleState');
+  function applyThemeSplotch(on){
+    document.documentElement.classList.toggle('theme-on', on);
+    themeToggleState.textContent = on ? 'Be' : 'Ki';
+  }
+  function loadThemeSplotch(){
+    let on = false;
+    try{ on = localStorage.getItem(THEME_ON_KEY) === '1'; }catch(e){}
+    applyThemeSplotch(on);
+  }
+  themeToggleBtn.addEventListener('click', () => {
+    const on = !document.documentElement.classList.contains('theme-on');
+    applyThemeSplotch(on);
+    try{ localStorage.setItem(THEME_ON_KEY, on ? '1' : '0'); }catch(e){}
+  });
+  loadThemeSplotch();
   apiOverlay.addEventListener('click', (e) => { if(e.target === apiOverlay) apiOverlay.classList.remove('show'); });
   apiOptions.forEach(b => b.addEventListener('click', () => {
     activeApi = b.dataset.api;
@@ -3338,6 +3520,8 @@
   practiceNextWordBtn.addEventListener('click', goToNextPracticeWord);
 
   practiceNextGroupBtn.addEventListener('click', () => {
+    practiceNextGroupBtn.classList.add('flash-white');
+    setTimeout(() => practiceNextGroupBtn.classList.remove('flash-white'), 250);
     practiceGroupIndex++;
     practiceWordIndex = 0;
     renderPracticeWord();
