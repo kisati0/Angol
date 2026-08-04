@@ -3083,6 +3083,8 @@
   }
 
   function closeFlashcard(){
+    // A szókártya beszéde ne maradjon aktív a főoldalra visszatérés után.
+    try{ window.speechSynthesis.cancel(); }catch(e){}
     fcOpen = false;
     flashcardOverlay.classList.remove('show');
     flashcardBtn.classList.remove('active');
@@ -4031,7 +4033,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw-v32.js').catch(() => {});
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     });
   }
 </script>

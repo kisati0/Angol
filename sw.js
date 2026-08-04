@@ -1,10 +1,10 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v32 - mobilos húzásos bezárás javítása és cache-frissítés
+// Verzió: v33 - szókártya hang-leállítás és cache-frissítés
 
-const CACHE = 'szomondo-1-v32';
+const CACHE = 'szomondo-1-v33';
 const ASSETS = [
   './',
-  './index-v32.html',
+  './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (e) => {
           .then(cached => {
             if (cached) return cached;
             // Ha a kért fájl nincs cache-ben, a főoldalt adjuk
-            return caches.match('./index-v32.html');
+            return caches.match('./index.html');
           });
       })
   );
@@ -81,10 +81,10 @@ self.addEventListener('message', (event) => {
     // Profilváltáskor frissítsük a cache-t (az új index.html-t töltsük be)
     caches.open(CACHE)
       .then(cache => {
-        return fetch('./index-v32.html')
+        return fetch('./index.html')
           .then(response => {
             if (response && response.status === 200) {
-              cache.put('./index-v32.html', response);
+              cache.put('./index.html', response);
             }
           })
           .catch(() => {});
