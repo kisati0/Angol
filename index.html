@@ -2095,7 +2095,7 @@
   function renderMemoryTable(){
     const visible = getVisibleMemoryEntries();
     memoryTableBody.innerHTML = '';
-    memoryDelHead.style.display='none';
+    memoryDelHead.style.display = memoryTrashMode ? '' : 'none';
 
     const rows = visible.map((entry, index) => ({ entry, index }));
     memoryEmptyState.textContent = 'Még nincs semmi a memóriában ezen a nyelven.';
@@ -2113,22 +2113,7 @@
         const noteNumTd = document.createElement('td');
         noteNumTd.className = 'memory-num-cell';
         noteTr.appendChild(noteNumTd);
-        if(memoryTrashMode){
-          const noteDelTd = document.createElement('td');
-          noteDelTd.className = 'memory-del-cell';
-          const noteDelBtn = document.createElement('button');
-          noteDelBtn.className = 'memory-del';
-          noteDelBtn.textContent = '✕';
-          noteDelBtn.setAttribute('aria-label', 'Törlés');
-          noteDelBtn.addEventListener('click', (ev) => {
-            ev.stopPropagation();
-            memoryEntries = memoryEntries.filter(e => e.id !== entry.id);
-            saveMemoryToDisk();
-            renderMemoryTable();
-          });
-          noteDelTd.appendChild(noteDelBtn);
-          noteTr.appendChild(noteDelTd);
-        }
+        
         const noteTd = document.createElement('td');
         noteTd.className = 'mem-edit memory-note-text';
         noteTd.colSpan = 5;
@@ -2201,63 +2186,7 @@
       linkBtn.setAttribute('aria-label', 'Szavak hozzárendelése ehhez a mondathoz');
       linkTd.appendChild(linkBtn);
 
-      const delTd = document.createElement('td');
-      delTd.className = 'memory-del-cell';
-      const delBtn = document.createElement('button');
-      delBtn.className = 'memory-del';
-      delBtn.textContent = '✕';
-      delBtn.setAttribute('aria-label', 'Törlés');
-      delTd.appendChild(delBtn);
-
-      function commit(){
-        entry.hu = huTd.textContent.trim();
-        entry.foreign = fxTd.textContent.trim();
-        entry.huSentence = huSentTd.textContent.trim();
-        entry.fxSentence = fxSentTd.textContent.trim();
-        entry.updatedAt = Date.now();
-        saveMemoryToDisk();
-      }
-      huTd.addEventListener('input', commit);
-      fxTd.addEventListener('input', commit);
-      huSentTd.addEventListener('input', commit);
-      fxSentTd.addEventListener('input', commit);
-
-      linkBtn.addEventListener('click', async (ev) => {
-        ev.stopPropagation();
-        if(!isMemorySentenceEntry(entry)){
-          flashBtnRed(linkBtn);
-          showMemoryNote('Ehhez a sorhoz nincs mondat.');
-          return;
-        }
-        const currentNums = (entry.linkedWordIds || [])
-          .map(id => visible.findIndex(v => v.id === id))
-          .filter(i => i >= 0)
-          .map(i => i + 1);
-        const answer = await askForLinks(currentNums.join(', '));
-        if(answer === null) return;
-        const ids = [];
-        const bad = [];
-        answer.split(/[,\s]+/).filter(Boolean).forEach(part => {
-          const n = parseInt(part, 10);
-          const target = (!isNaN(n) && n >= 1 && n <= visible.length) ? visible[n - 1] : null;
-          if(!target || target.id === entry.id) bad.push(part);
-          else if(!ids.includes(target.id)) ids.push(target.id);
-        });
-        entry.linkedWordIds = ids;
-        entry.updatedAt = Date.now();
-        saveMemoryToDisk();
-        renderMemoryTable();
-        if(bad.length) showMemoryNote('Ezeket nem tudtam értelmezni: ' + bad.join(', '));
-      });
-
-      delBtn.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        memoryEntries = memoryEntries.filter(e => e.id !== entry.id);
-        memorySelectedIds.delete(entry.id);
-        saveMemoryToDisk();
-        renderMemoryTable();
-      });
-      tr.addEventListener('click', () => {
+            tr.addEventListener('click', () => {
         if(noteInsertMode){
           const idx = memoryEntries.indexOf(entry);
           if(idx < 0) return;
