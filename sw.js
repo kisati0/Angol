@@ -11,7 +11,6 @@ const ASSETS = [
   './icon-maskable.png'
 ];
 
-// Telepítés: a fontos fájlok cache-elése
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE)
@@ -20,7 +19,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Aktiválás: régi cache-ek törlése
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
@@ -31,12 +29,9 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Hálózati kérések kezelése: network-first stratégia
 self.addEventListener('fetch', (e) => {
-  // Csak GET kéréseket kezelünk
   if (e.request.method !== 'GET') return;
 
-  // API kérések és adatmentések ne legyenek cache-elve
   const url = new URL(e.request.url);
   if (url.pathname.includes('/api/') || 
       url.pathname.includes('translate') ||
@@ -49,7 +44,6 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Normál fájlok: network-first, cache fallback
   e.respondWith(
     fetch(e.request)
       .then(response => {
@@ -71,7 +65,6 @@ self.addEventListener('fetch', (e) => {
   );
 });
 
-// Üzenetkezelés: ha az alkalmazás jelzi, hogy profil váltott
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'PROFILE_CHANGED') {
     caches.open(CACHE)
