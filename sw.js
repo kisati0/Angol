@@ -1,7 +1,7 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v35 - gyakorlás: háttérre koppintva is felolvasás, billentyűzet nem tűnik el
+// Verzió: v36 - gyakorlás input mező: autofill sáv kikapcsolása
 
-const CACHE = 'szomondo-1-v35';
+const CACHE = 'szomondo-1-v36';
 const ASSETS = [
   './',
   './index.html',
