@@ -2499,7 +2499,8 @@
         <div class="hist-hu">${escapeHtml(huOf(entry))}</div>
         <div class="hist-fx">${escapeHtml(fxOf(entry))}</div>
       `;
-      row.addEventListener('click', () => {
+      let touchStartX = 0, touchStartY = 0, touchMoved = false, activatedByTouch = false;
+      const activateHistoryItem = () => {
         if(deleteMode){
           if(deleteSelectedIds.has(entry.id)){
             deleteSelectedIds.delete(entry.id);
@@ -2523,6 +2524,32 @@
         selectedIndex = index;
         renderHistory();
         showResult(huOf(entry), fxOf(entry), true, entry.lang, entry.id);
+      };
+      row.addEventListener('touchstart', (event) => {
+        const touch = event.touches[0];
+        if(!touch) return;
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchMoved = false;
+      }, { passive: true });
+      row.addEventListener('touchmove', (event) => {
+        const touch = event.touches[0];
+        if(touch && (Math.abs(touch.clientX - touchStartX) > 10 || Math.abs(touch.clientY - touchStartY) > 10)) touchMoved = true;
+      }, { passive: true });
+      row.addEventListener('touchend', (event) => {
+        if(touchMoved) return;
+        if(event.cancelable) event.preventDefault();
+        activatedByTouch = true;
+        activateHistoryItem();
+        setTimeout(() => { activatedByTouch = false; }, 500);
+      }, { passive: false });
+      row.addEventListener('touchcancel', () => { touchMoved = true; });
+      row.addEventListener('click', () => {
+        if(activatedByTouch){
+          activatedByTouch = false;
+          return;
+        }
+        activateHistoryItem();
       });
       historyList.appendChild(row);
     });
@@ -4033,7 +4060,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.register('sw-v34.js').catch(() => {});
     });
   }
 </script>
