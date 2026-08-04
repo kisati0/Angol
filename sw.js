@@ -1,7 +1,7 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v27 - kuka mód javítás (egy kattintásos törlés, fejléc-ugrás javítva)
+// Verzió: v28 - érintési javítások és cache-frissítés
 
-const CACHE = 'szomondo-1-v27';
+const CACHE = 'szomondo-1-v28';
 const ASSETS = [
   './',
   './index.html',
