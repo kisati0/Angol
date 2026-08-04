@@ -18,9 +18,9 @@
     --bg: #232323;
     --ink: #EDEAE4;
     --ink-soft: #A8A39A;
-    --profile-color: #E0692F;
-    --profile-color-rgb: 224,105,47;
-    --profile-color-deep: #C1440E;
+    --paprika: #E0692F;
+    --paprika-deep: #C1440E;
+    --paprika-rgb: 224,105,47;
     --teal: #3A8177;
     --gold: #D9A441;
     --green: #4CAF6D;
@@ -134,9 +134,9 @@
     border: 1px solid var(--line);
   }
   .theme-area-btn.on span{
-    color: var(--profile-color-deep);
-    border-color: var(--profile-color);
-    background: rgba(var(--profile-color-rgb),0.12);
+    color: var(--paprika-deep);
+    border-color: var(--paprika);
+    background: rgba(var(--paprika-rgb),0.12);
   }
   .menu-sep{
     height: 1px;
@@ -150,7 +150,7 @@
   }
   .menu-panel .lang-option span{ font-size: 20px; line-height: 1; }
   .menu-panel .lang-option.active{
-    background: var(--profile-color);
+    background: var(--paprika);
     color: #fff;
   }
 
@@ -191,8 +191,8 @@
     flex-shrink: 0;
   }
   .profile-item .icon-btn.select-btn {
-    background: var(--profile-color);
-    border-color: var(--profile-color);
+    background: var(--paprika);
+    border-color: var(--paprika);
     color: #fff;
   }
   .profile-item .icon-btn.select-btn.active {
@@ -231,7 +231,7 @@
     position: absolute;
     inset: 5px;
     border-radius: 50%;
-    border: 1px solid rgba(var(--profile-color-rgb),0.78);
+    border: 1px solid rgba(var(--paprika-rgb),0.78);
     pointer-events: none;
     transition: border-color 0.2s ease;
   }
@@ -245,7 +245,7 @@
     border-radius: 50%;
     background: var(--card);
     color: var(--ink);
-    border: 1px solid rgba(var(--profile-color-rgb),0.78);
+    border: 1px solid rgba(var(--paprika-rgb),0.78);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -290,9 +290,9 @@
     opacity: 0.6;
   }
   .question-btn.active{
-    border-color: var(--profile-color);
-    color: var(--profile-color-deep);
-    background: rgba(var(--profile-color-rgb),0.12);
+    border-color: var(--paprika);
+    color: var(--paprika-deep);
+    background: rgba(var(--paprika-rgb),0.12);
     opacity: 1;
   }
   .question-btn.flash-red, .action-btn.flash-red, .icon-btn.flash-red{
@@ -315,7 +315,7 @@
 
   .error-status{
     font-size: 13px;
-    color: var(--profile-color-deep);
+    color: var(--paprika-deep);
     text-align: center;
     display: none;
   }
@@ -360,7 +360,7 @@
     position: absolute;
     inset: 6px;
     border-radius: 13px;
-    border: 1px solid rgba(var(--profile-color-rgb),0.6);
+    border: 1px solid rgba(var(--paprika-rgb),0.6);
     pointer-events: none;
   }
   .lang-tag{
@@ -372,7 +372,7 @@
     text-transform: uppercase;
     display: inline-block;
   }
-  .lang-tag.hu{ background: rgba(217,164,65,0.2); color: var(--profile-color-deep); }
+  .lang-tag.hu{ background: rgba(217,164,65,0.2); color: var(--paprika-deep); }
   .lang-tag.fx{ background: rgba(31,76,70,0.12); color: var(--teal); }
   .orig-text{ font-size: 15px; color: var(--ink-soft); outline: none; border-radius: 8px; padding: 6px 8px; margin: -6px -8px; background: rgba(0,0,0,0.035); min-height: 1.4em; }
 
@@ -388,7 +388,7 @@
     background: rgba(0,0,0,0.035);
     min-height: 1.3em;
   }
-  .orig-text:focus, .trans-text:focus{ background: rgba(var(--profile-color-rgb),0.06); box-shadow: 0 0 0 1px rgba(var(--profile-color-rgb),0.3); }
+  .orig-text:focus, .trans-text:focus{ background: rgba(var(--paprika-rgb),0.06); box-shadow: 0 0 0 1px rgba(var(--paprika-rgb),0.3); }
   .result-main{
     display: flex;
     gap: 10px;
@@ -422,9 +422,9 @@
   }
   .action-btn:hover{ filter: brightness(0.93); }
   .action-btn.active{
-    border-color: var(--profile-color);
-    color: var(--profile-color-deep);
-    background: rgba(var(--profile-color-rgb),0.12);
+    border-color: var(--paprika);
+    color: var(--paprika-deep);
+    background: rgba(var(--paprika-rgb),0.12);
   }
   .action-btn.listening-active{ background: var(--neutral-bg); border-color: var(--neutral-border); color: var(--ink); }
   .icon-btn{
@@ -441,7 +441,7 @@
   .icon-btn:hover{ filter: brightness(0.93); }
   .icon-btn:disabled{ opacity: 0.45; cursor: default; }
   .icon-btn.listening-active{ background: var(--neutral-bg); border-color: var(--neutral-border); color: var(--ink); }
-  .icon-btn.order-active{ background: var(--profile-color); border-color: var(--profile-color); color: #fff; }
+  .icon-btn.order-active{ background: var(--paprika); border-color: var(--paprika); color: #fff; }
 
   section.history{ display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
   .history-head{ display: flex; align-items: baseline; padding: 0 2px; }
@@ -451,7 +451,7 @@
   #allSelectBtn{ padding: 3px 10px; font-size: 12px; font-weight: 700; }
   .play-row .icon-btn{ flex: 0 0 auto; justify-content: center; align-items: center; height: 38px; padding: 0 10px; font-size: 13px; }
   .play-row #flashcardBtn{ padding: 0 12px; }
-  .play-row #flashcardBtn.active{ background: var(--profile-color); border-color: var(--profile-color); color: #fff; }
+  .play-row #flashcardBtn.active{ background: var(--paprika); border-color: var(--paprika); color: #fff; }
   .play-row #playFxBtn{ width: 64px; margin-left: auto; }
   .play-row #deleteModeBtn{ padding: 0 10px; }
   .play-row #addMemBtn{ padding: 0 10px; }
@@ -505,8 +505,8 @@
     min-width: 0;
     text-align: center;
   }
-  .hist-item:hover{ border-color: var(--profile-color); }
-  .hist-item.selected{ border-color: var(--profile-color); background: rgba(var(--profile-color-rgb),0.07); }
+  .hist-item:hover{ border-color: var(--paprika); }
+  .hist-item.selected{ border-color: var(--paprika); background: rgba(var(--paprika-rgb),0.07); }
   .hist-hu{ font-size: 10px; color: var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 100%; }
   .hist-fx{ font-size: 12px; font-weight: 600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 100%; }
   .empty-state{
@@ -541,23 +541,6 @@
     gap: 8px;
     padding: calc(14px + var(--top-offset, 0px)) 16px 8px;
   }
-  .memory-lang-frame{
-    width: 38px;
-    height: 38px;
-    border: 2px solid var(--profile-color);
-    border-radius: 10px;
-    background: var(--bg);
-    font-family: 'Work Sans', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--profile-color-deep);
-    flex-shrink: 0;
-    padding: 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
   .memory-lang-frame.find-on{
     box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 0 16px 4px rgba(255,255,255,0.35);
   }
@@ -565,9 +548,9 @@
     box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 0 16px 4px rgba(255,255,255,0.35);
   }
   .find-hit{
-    outline: 2px solid var(--profile-color);
+    outline: 2px solid var(--paprika);
     outline-offset: -2px;
-    background: rgba(var(--profile-color-rgb),0.18) !important;
+    background: rgba(var(--paprika-rgb),0.18) !important;
   }
   #memoryTable tr.find-inline td{
     padding: 0;
@@ -580,7 +563,7 @@
     width: calc(100vw - 40px);
     max-width: 440px;
     padding: 10px 4px 12px;
-    border-top: 1px solid rgba(var(--profile-color-rgb),0.6);
+    border-top: 1px solid rgba(var(--paprika-rgb),0.6);
     background: var(--bg);
   }
   .find-results.show{ display: block; }
@@ -589,7 +572,7 @@
     color: var(--ink-soft);
     margin-bottom: 8px;
   }
-  .find-head b{ color: var(--profile-color); font-size: 14px; }
+  .find-head b{ color: var(--paprika); font-size: 14px; }
   .find-row{
     display: flex;
     align-items: flex-start;
@@ -601,13 +584,30 @@
     flex: 0 0 26px;
     font-size: 12px;
     font-weight: 700;
-    color: var(--profile-color);
+    color: var(--paprika);
     font-variant-numeric: tabular-nums;
     padding-top: 3px;
   }
   .find-sentences{ flex: 1; min-width: 0; font-size: 13px; line-height: 1.35; }
   .find-sentences .fx{ color: var(--ink); }
   .find-sentences .hu{ color: var(--ink-soft); font-size: 12px; }
+  .memory-lang-frame{
+    width: 38px;
+    height: 38px;
+    border: 2px solid var(--paprika);
+    border-radius: 10px;
+    background: var(--bg);
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--paprika-deep);
+    flex-shrink: 0;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .memory-header-btns{ margin-left: auto; }
   .memory-header h2{
     font-family: 'Fraunces', serif;
@@ -634,16 +634,16 @@
     flex-shrink: 0;
   }
   .header-icon-btn.active{
-    background: var(--profile-color);
-    border-color: var(--profile-color);
+    background: var(--paprika);
+    border-color: var(--paprika);
     color: #fff;
   }
   #memoryAllBtn{ width: auto; padding: 0 8px; font-weight: 700; }
   #memoryTable tr.selected td{
-    background: rgba(var(--profile-color-rgb),0.1);
+    background: rgba(var(--paprika-rgb),0.1);
   }
   #memoryTable tr.block-end td{
-    border-bottom: 1px solid rgba(var(--profile-color-rgb),0.78);
+    border-bottom: 1px solid rgba(var(--paprika-rgb),0.78);
   }
   .memory-toolbar{
     display: flex;
@@ -729,11 +729,11 @@
     border-left: 1px solid var(--line-strong);
   }
   #memoryTable td[contenteditable]:focus{
-    background: rgba(var(--profile-color-rgb),0.06);
-    box-shadow: 0 0 0 1px rgba(var(--profile-color-rgb),0.3);
+    background: rgba(var(--paprika-rgb),0.06);
+    box-shadow: 0 0 0 1px rgba(var(--paprika-rgb),0.3);
     border-radius: 6px;
   }
-  .memory-note-row td{ background: rgba(var(--profile-color-rgb),0.05); }
+  .memory-note-row td{ background: rgba(var(--paprika-rgb),0.05); }
   .memory-note-text{
     font-style: italic;
     color: var(--ink-soft);
@@ -747,7 +747,7 @@
     border-radius: 50%;
     border: none;
     background: var(--card);
-    color: var(--profile-color-deep);
+    color: var(--paprika-deep);
     font-size: 14px;
     margin: 0 auto;
     cursor: pointer;
@@ -820,8 +820,8 @@
   }
   #practiceNextGroupBtn{
     background: var(--bg);
-    border: 2px solid var(--profile-color);
-    color: var(--profile-color-deep);
+    border: 2px solid var(--paprika);
+    color: var(--paprika-deep);
     font-weight: 700;
     transition: box-shadow 0.15s ease;
   }
@@ -849,7 +849,7 @@
     position: absolute;
     inset: 6px;
     border-radius: 13px;
-    border: 1px solid rgba(var(--profile-color-rgb),0.6);
+    border: 1px solid rgba(var(--paprika-rgb),0.6);
     pointer-events: none;
   }
   .practice-prompt{
@@ -880,8 +880,8 @@
   }
   .practice-answer-row input:focus{
     outline: none;
-    background: rgba(var(--profile-color-rgb),0.06);
-    box-shadow: 0 0 0 1px rgba(var(--profile-color-rgb),0.3);
+    background: rgba(var(--paprika-rgb),0.06);
+    box-shadow: 0 0 0 1px rgba(var(--paprika-rgb),0.3);
   }
   .practice-controls-row{
     display: flex;
@@ -893,12 +893,12 @@
   .practice-controls-row #practiceCheckBtn{
     flex: 1;
     justify-content: center;
-    background: var(--profile-color);
-    border-color: var(--profile-color);
+    background: var(--paprika);
+    border-color: var(--paprika);
     color: #fff;
     font-weight: 600;
   }
-  .practice-controls-row #practiceCheckBtn:hover{ background: var(--profile-color-deep); }
+  .practice-controls-row #practiceCheckBtn:hover{ background: var(--paprika-deep); }
   .practice-feedback{
     min-height: 20px;
     font-size: 14px;
@@ -1025,7 +1025,7 @@
     position: absolute;
     inset: 5px;
     border-radius: 13px;
-    border: 1px solid rgba(var(--profile-color-rgb),0.6);
+    border: 1px solid rgba(var(--paprika-rgb),0.6);
     pointer-events: none;
   }
   #veHuReveal.show{ display: block; }
@@ -1085,7 +1085,7 @@
   }
   @keyframes vePaintReveal{
     0%{ color: transparent; text-shadow: 0 0 0 transparent; }
-    35%{ color: #ffe27a; text-shadow: 0 6px 12px var(--profile-color); }
+    35%{ color: #ffe27a; text-shadow: 0 6px 12px var(--paprika); }
     70%{ color: #ff8fab; text-shadow: 0 4px 10px #4ecdc4; }
     100%{ color: var(--lc, #ffffff); text-shadow: 0 0 0 transparent; }
   }
@@ -1131,7 +1131,7 @@
     position: absolute;
     inset: 6px;
     border-radius: 13px;
-    border: 1px solid rgba(var(--profile-color-rgb),0.6);
+    border: 1px solid rgba(var(--paprika-rgb),0.6);
     pointer-events: none;
   }
   .link-title{
@@ -1158,8 +1158,8 @@
   }
   #linkInput:focus{
     outline: none;
-    background: rgba(var(--profile-color-rgb),0.06);
-    box-shadow: 0 0 0 1px rgba(var(--profile-color-rgb),0.3);
+    background: rgba(var(--paprika-rgb),0.06);
+    box-shadow: 0 0 0 1px rgba(var(--paprika-rgb),0.3);
   }
   .link-btn-row{
     position: relative;
@@ -1169,8 +1169,8 @@
   }
   .link-btn-row .icon-btn{ flex: 1; justify-content: center; padding: 10px; }
   .link-btn-row #linkOkBtn{
-    background: var(--profile-color);
-    border-color: var(--profile-color);
+    background: var(--paprika);
+    border-color: var(--paprika);
     color: #fff;
     font-weight: 600;
   }
@@ -1258,7 +1258,7 @@
     min-width: 48px;
     text-align: center;
     font-variant-numeric: tabular-nums;
-    color: var(--profile-color-deep);
+    color: var(--paprika-deep);
   }
   .margin-row .icon-btn{ padding: 8px 14px; font-size: 16px; }
   .api-list{
@@ -1270,8 +1270,8 @@
   }
   .api-list .api-option{ justify-content: center; padding: 10px; }
   .api-list .api-option.active{
-    background: var(--profile-color);
-    border-color: var(--profile-color);
+    background: var(--paprika);
+    border-color: var(--paprika);
     color: #fff;
     font-weight: 600;
   }
@@ -1333,9 +1333,8 @@
             <button class="theme-area-btn" data-area="memory">Memória <span>Ki</span></button>
             <button class="theme-area-btn" data-area="practice">Gyakorlás <span>Ki</span></button>
             <button class="theme-area-btn" data-area="flashcard">Szókártya <span>Ki</span></button>
-            <div class="menu-sep"></div>
-            <button id="profileMenuItem" style="font-size:14px;padding:10px 14px;">👤 Profilok</button>
           </div>
+          <button id="profileMenuItem">👤 Profilok</button>
           <div class="menu-sep"></div>
           <button class="lang-option" data-lang="en"><span>🇺🇸</span>Angol</button>
           <button class="lang-option" data-lang="es"><span>🇪🇸</span>Spanyol</button>
@@ -1548,46 +1547,54 @@
 (function(){
   // --- Profil Manager ---
   const PROFILES_STORAGE_KEY = 'hu-multi-profiles-v1';
-  const DEFAULT_PROFILE_NAME = 'Profil 1';
   const PROFILE_COLORS = [
-    { name: 'Narancssárga', hex: '#E0692F', rgb: '224,105,47', deep: '#C1440E' },
-    { name: 'Kék', hex: '#4A90E2', rgb: '74,144,226', deep: '#2E6BB5' },
-    { name: 'Zöld', hex: '#4CAF6D', rgb: '76,175,109', deep: '#388E3C' },
-    { name: 'Lila', hex: '#A78BFA', rgb: '167,139,250', deep: '#7C6BBF' },
-    { name: 'Rózsaszín', hex: '#FF8FAB', rgb: '255,143,171', deep: '#E06A88' }
+    { hex: '#E0692F', deep: '#C1440E', rgb: '224,105,47' },
+    { hex: '#4A90E2', deep: '#1F5FB0', rgb: '74,144,226' },
+    { hex: '#4CAF6D', deep: '#2E8B4F', rgb: '76,175,109' },
+    { hex: '#A78BFA', deep: '#7C5CE0', rgb: '167,139,250' },
+    { hex: '#FF8FAB', deep: '#E0577D', rgb: '255,143,171' }
   ];
   const MAX_PROFILES = 5;
 
+  function profileColor(id){ return PROFILE_COLORS[(id - 1) % PROFILE_COLORS.length]; }
+  function applyProfileTheme(id){
+    const c = profileColor(id);
+    const root = document.documentElement.style;
+    root.setProperty('--paprika', c.hex);
+    root.setProperty('--paprika-deep', c.deep);
+    root.setProperty('--paprika-rgb', c.rgb);
+  }
+
   let profilManager = {
     profiles: [],
-    activeProfileName: DEFAULT_PROFILE_NAME,
+    activeProfileId: 1,
 
     loadProfiles() {
       try {
         const raw = localStorage.getItem(PROFILES_STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          this.profiles = parsed.profiles || [];
-          this.activeProfileName = parsed.activeProfileName || DEFAULT_PROFILE_NAME;
-        } else {
-          this.profiles = [{ name: DEFAULT_PROFILE_NAME, colorIndex: 0 }];
-          this.activeProfileName = DEFAULT_PROFILE_NAME;
-          this.saveProfiles();
+          this.profiles = Array.isArray(parsed.profiles) ? parsed.profiles : [];
+          this.activeProfileId = parsed.activeProfileId || 1;
         }
-        if (!this.profiles.find(p => p.name === this.activeProfileName)) {
-          this.activeProfileName = this.profiles[0]?.name || DEFAULT_PROFILE_NAME;
+        if (!this.profiles.length) {
+          this.profiles = [{ id: 1, name: 'Profil 1' }];
+        }
+        if (!this.profiles.find(p => p.id === this.activeProfileId)) {
+          this.activeProfileId = this.profiles[0].id;
         }
       } catch (e) {
-        this.profiles = [{ name: DEFAULT_PROFILE_NAME, colorIndex: 0 }];
-        this.activeProfileName = DEFAULT_PROFILE_NAME;
+        this.profiles = [{ id: 1, name: 'Profil 1' }];
+        this.activeProfileId = 1;
       }
+      applyProfileTheme(this.activeProfileId);
     },
 
     saveProfiles() {
       try {
         localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify({
           profiles: this.profiles,
-          activeProfileName: this.activeProfileName
+          activeProfileId: this.activeProfileId
         }));
       } catch (e) {
         console.error('Failed to save profiles', e);
@@ -1595,21 +1602,22 @@
       }
     },
 
+    // Profile 1 keeps the exact original keys, so existing data never moves.
     getDataKey(baseKey) {
-      return `${baseKey}_${this.activeProfileName}`;
+      return this.activeProfileId === 1 ? baseKey : `${baseKey}_p${this.activeProfileId}`;
     },
 
-    setActiveProfile(profileName) {
-      if (this.activeProfileName === profileName) return;
-      if (this.profiles.find(p => p.name === profileName)) {
-        this.activeProfileName = profileName;
+    setActiveProfile(id) {
+      if (this.activeProfileId === id) return;
+      if (this.profiles.find(p => p.id === id)) {
+        this.activeProfileId = id;
         this.saveProfiles();
+        applyProfileTheme(id);
         this.loadDataForActiveProfile();
       }
     },
 
     loadDataForActiveProfile() {
-      updateProfileColors();
       loadDictionary();
       loadMemory();
       renderHistory();
@@ -1621,81 +1629,45 @@
     addProfile(name) {
       if (this.profiles.length >= MAX_PROFILES) {
         showError('Maximum 5 profilt hozhatsz létre.');
-        return false;
+        return null;
       }
-      const usedColors = this.profiles.map(p => p.colorIndex);
-      let availableIndex = -1;
-      for (let i = 0; i < PROFILE_COLORS.length; i++) {
-        if (!usedColors.includes(i)) {
-          availableIndex = i;
-          break;
-        }
-      }
-      if (availableIndex === -1) {
-        showError('Nincs több szín elérhető.');
-        return false;
-      }
-      if (this.profiles.find(p => p.name === name)) {
-        showError('Már létezik ilyen nevű profil.');
-        return false;
-      }
-      this.profiles.push({ name, colorIndex: availableIndex });
+      const used = this.profiles.map(p => p.id);
+      let nextId = 1;
+      while (used.includes(nextId)) nextId++;
+      this.profiles.push({ id: nextId, name: name });
       this.saveProfiles();
       renderProfileList();
-      return true;
+      return nextId;
     },
 
-    renameProfile(oldName, newName) {
-      if (oldName === newName) return true;
-      if (this.profiles.find(p => p.name === newName)) {
-        showError('Már létezik ilyen nevű profil.');
-        return false;
-      }
-      const profile = this.profiles.find(p => p.name === oldName);
+    renameProfile(id, newName) {
+      const profile = this.profiles.find(p => p.id === id);
       if (!profile) return false;
       profile.name = newName;
-      if (this.activeProfileName === oldName) {
-        this.activeProfileName = newName;
-      }
       this.saveProfiles();
       renderProfileList();
       return true;
     },
 
-    deleteProfile(profileName) {
+    deleteProfile(id) {
       if (this.profiles.length <= 1) {
         showError('Nem törölheted az utolsó profilt.');
         return;
       }
-      if (profileName === DEFAULT_PROFILE_NAME) {
+      if (id === 1) {
         showError('Az alapértelmezett profilt nem törölheted.');
         return;
       }
-      this.profiles = this.profiles.filter(p => p.name !== profileName);
-      if (this.activeProfileName === profileName) {
-        this.activeProfileName = this.profiles[0]?.name || DEFAULT_PROFILE_NAME;
+      this.profiles = this.profiles.filter(p => p.id !== id);
+      if (this.activeProfileId === id) {
+        this.activeProfileId = this.profiles[0].id;
+        applyProfileTheme(this.activeProfileId);
       }
       this.saveProfiles();
       this.loadDataForActiveProfile();
       renderProfileList();
     }
   };
-
-  // --- Színfrissítés ---
-  function updateProfileColors() {
-    const profile = profilManager.profiles.find(p => p.name === profilManager.activeProfileName);
-    if (!profile) return;
-    
-    const color = PROFILE_COLORS[profile.colorIndex];
-    if (!color) return;
-
-    document.documentElement.style.setProperty('--profile-color', color.hex);
-    document.documentElement.style.setProperty('--profile-color-rgb', color.rgb);
-    document.documentElement.style.setProperty('--profile-color-deep', color.deep);
-
-    const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.content = color.hex;
-  }
 
   // --- Profil UI ---
   const profilOverlay = document.getElementById('profilOverlay');
@@ -1712,14 +1684,13 @@
       return;
     }
     profiles.forEach((profile) => {
-      const color = PROFILE_COLORS[profile.colorIndex];
-      const isActive = profile.name === profilManager.activeProfileName;
+      const isActive = profile.id === profilManager.activeProfileId;
       const item = document.createElement('div');
       item.className = `profile-item ${isActive ? 'active' : ''}`;
 
       const dot = document.createElement('span');
       dot.className = 'profile-color-dot';
-      dot.style.backgroundColor = color.hex;
+      dot.style.backgroundColor = profileColor(profile.id).hex;
 
       const nameSpan = document.createElement('span');
       nameSpan.className = 'profile-name';
@@ -1730,7 +1701,7 @@
       selectBtn.textContent = isActive ? 'Aktív' : 'Kiválaszt';
       selectBtn.addEventListener('click', () => {
         if (!isActive) {
-          profilManager.setActiveProfile(profile.name);
+          profilManager.setActiveProfile(profile.id);
         }
       });
 
@@ -1742,7 +1713,7 @@
       renameBtn.addEventListener('click', () => {
         const newName = prompt(`Add meg a profil új nevét (jelenleg: "${profile.name}"):`, profile.name);
         if (newName && newName.trim() && newName.trim() !== profile.name) {
-          profilManager.renameProfile(profile.name, newName.trim());
+          profilManager.renameProfile(profile.id, newName.trim());
         }
       });
 
@@ -1752,13 +1723,13 @@
       deleteBtn.style.padding = '4px 8px';
       deleteBtn.style.fontSize = '14px';
       deleteBtn.style.color = 'var(--red)';
-      if (profile.name === DEFAULT_PROFILE_NAME || profilManager.profiles.length <= 1) {
+      if (profile.id === 1 || profilManager.profiles.length <= 1) {
         deleteBtn.style.opacity = '0.3';
         deleteBtn.style.pointerEvents = 'none';
       }
       deleteBtn.addEventListener('click', () => {
         if (confirm(`Biztosan törölni szeretnéd a "${profile.name}" profilt?`)) {
-          profilManager.deleteProfile(profile.name);
+          profilManager.deleteProfile(profile.id);
         }
       });
 
@@ -1789,11 +1760,9 @@
   addProfileBtn.addEventListener('click', () => {
     const name = prompt('Add meg az új profil nevét:');
     if (name && name.trim()) {
-      if (profilManager.addProfile(name.trim())) {
-        const newProfile = profilManager.profiles.find(p => p.name === name.trim());
-        if (newProfile) {
-          profilManager.setActiveProfile(newProfile.name);
-        }
+      const newId = profilManager.addProfile(name.trim());
+      if (newId) {
+        profilManager.setActiveProfile(newId);
       }
     }
   });
@@ -1803,7 +1772,7 @@
     if (e.target === profilOverlay) closeProfileOverlay();
   });
 
-  // --- Menü elem ---
+  // --- Menü elem hozzáadása a profilokhoz ---
   const profileMenuItem = document.getElementById('profileMenuItem');
   if (profileMenuItem) {
     profileMenuItem.addEventListener('click', () => {
