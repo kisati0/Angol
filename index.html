@@ -1524,7 +1524,7 @@
       </div>
       <div class="memory-table-wrap" id="memoryTableWrap">
         <table id="memoryTable">
-          <thead><tr><th>#</th><th id="memoryDelHead"></th><th>Magyar szó</th><th id="memoryColHead">Idegen szó</th><th>Magyar mondat</th><th id="memoryColHeadSentence">Idegen mondat</th><th>🔗</th></tr></thead>
+          <thead><tr><th>#</th><th>Magyar szó</th><th id="memoryColHead">Idegen szó</th><th>Magyar mondat</th><th id="memoryColHeadSentence">Idegen mondat</th><th>🔗</th></tr></thead>
           <tbody id="memoryTableBody"></tbody>
         </table>
         <div class="empty-state" id="memoryEmptyState" style="display:none;">Még nincs semmi a memóriában ezen a nyelven.</div>
@@ -1786,7 +1786,6 @@
   const memoryCloseBtn = document.getElementById('memoryCloseBtn');
   const memoryTrashBtn = document.getElementById('memoryTrashBtn');
   const memoryAddRowBtn = document.getElementById('memoryAddRowBtn');
-  const memoryDelHead = document.getElementById('memoryDelHead');
   const linkOverlay = document.getElementById('linkOverlay');
   const linkInput = document.getElementById('linkInput');
   const linkOkBtn = document.getElementById('linkOkBtn');
@@ -2104,7 +2103,6 @@
   function renderMemoryTable(){
     const visible = getVisibleMemoryEntries();
     memoryTableBody.innerHTML = '';
-    memoryDelHead.style.display = memoryTrashMode ? '' : 'none';
     // kuka módban ne legyen szerkeszthető
     const trashMode = memoryTrashMode;
     if (trashMode) {
@@ -2207,13 +2205,11 @@
 
       // Sorra kattintás
       tr.addEventListener('click', () => {
-        // Kuka mód: egy kattintással töröljük a sort
+        // Kuka mód: egy kattintással, azonnal töröljük a sort (bárhova kattintva a soron belül)
         if (memoryTrashMode) {
-          if (confirm('Biztosan törölni szeretnéd ezt a sort?')) {
-            memoryEntries = memoryEntries.filter(e => e.id !== entry.id);
-            saveMemoryToDisk();
-            renderMemoryTable();
-          }
+          memoryEntries = memoryEntries.filter(e => e.id !== entry.id);
+          saveMemoryToDisk();
+          renderMemoryTable();
           return;
         }
 
@@ -2312,14 +2308,20 @@
     }
   });
 
-  // Kuka gomb: csak a módot kapcsolja, törlés nélkül
+  // Kuka gomb: ha van + móddal kijelölt szó, azokat törli; egyébként a soronkénti
+  // egykattintásos törlés módot kapcsolja be/ki.
   memoryTrashBtn.addEventListener('click', () => {
-    // Ha van kijelölés a memóriában, akkor töröljük a kijelölteket (a régi funkció),
-    // de a felhasználó azt kérte, hogy csak egyszer kelljen kattintani a törléshez,
-    // ezért ezt a viselkedést megszüntetjük, és csak a mód kapcsolás marad.
-    // Ha mégis szeretnénk tartani a kijelöléses törlést, akkor külön kezeljük,
-    // de most a felhasználó egyértelműen a sorra kattintásos törlést kérte.
-    // Így a kuka gomb csak a módot kapcsolja.
+    // Ha a kijelölés mód aktív és van kijelölt sor, töröljük a kijelölteket
+    if (memorySelectMode && memorySelectedIds.size > 0) {
+      memoryEntries = memoryEntries.filter(e => !memorySelectedIds.has(e.id));
+      saveMemoryToDisk();
+      memorySelectMode = false;
+      memorySelectedIds.clear();
+      memoryAddBtn.classList.remove('active');
+      memoryAllBtn.style.display = 'none';
+      renderMemoryTable();
+      return;
+    }
     memoryTrashMode = !memoryTrashMode;
     memoryTrashBtn.classList.toggle('active', memoryTrashMode);
     // Ha bekapcsoljuk a kuka módot, akkor a kijelölés módot kapcsoljuk ki
