@@ -3102,6 +3102,9 @@
   flashcard.addEventListener('pointerdown', (e) => {
     fcDragging = true; fcMoved = false; fcAxis = null;
     fcStartX = e.clientX; fcStartY = e.clientY;
+    // Mobilon a felengedés akkor is a kártyához érkezzen, ha a húzás közben
+    // az ujj már a kártyán kívül van.
+    if(flashcard.setPointerCapture) flashcard.setPointerCapture(e.pointerId);
     flashcard.style.transition = 'none';
   });
 
@@ -3149,13 +3152,15 @@
   }
 
   function fcDismiss(dy){
-    // Azonnali bezárás: a távozó fedőablak így nem nyelheti el a következő koppintást.
     closeFlashcard();
   }
 
   function fcEndDrag(e){
     if(!fcDragging) return;
     fcDragging = false;
+    if(flashcard.hasPointerCapture && flashcard.hasPointerCapture(e.pointerId)){
+      flashcard.releasePointerCapture(e.pointerId);
+    }
     const dx = e.clientX - fcStartX, dy = e.clientY - fcStartY;
     if(fcAxis === 'x' && Math.abs(dx) > 60){
       fcSlideTo(dx < 0 ? 1 : -1);
@@ -3211,7 +3216,14 @@
     requestAnimationFrame(frame);
   }
   flashcard.addEventListener('pointerup', fcEndDrag);
-  flashcard.addEventListener('pointercancel', () => { if(fcDragging){ fcDragging = false; fcSnapBack(); } });
+  flashcard.addEventListener('pointercancel', (e) => {
+    if(!fcDragging) return;
+    fcDragging = false;
+    if(flashcard.hasPointerCapture && flashcard.hasPointerCapture(e.pointerId)){
+      flashcard.releasePointerCapture(e.pointerId);
+    }
+    fcSnapBack();
+  });
 
   let veIndex = null;
   let veCurrentHu = '';

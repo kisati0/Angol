@@ -1,7 +1,7 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v30 - azonnali szókártya-bezárás és cache-frissítés
+// Verzió: v31 - mobilos húzásos bezárás javítása és cache-frissítés
 
-const CACHE = 'szomondo-1-v30';
+const CACHE = 'szomondo-1-v31';
 const ASSETS = [
   './',
   './index.html',
