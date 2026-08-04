@@ -3076,6 +3076,7 @@
     fcShowingHu = false;
     fcOpen = true;
     flashcardOverlay.classList.add('show');
+    flashcardOverlay.style.pointerEvents = '';
     flashcardBtn.classList.add('active');
     flashcard.style.transition = '';
     flashcard.style.transform = '';
@@ -3086,6 +3087,7 @@
   function closeFlashcard(){
     fcOpen = false;
     flashcardOverlay.classList.remove('show');
+    flashcardOverlay.style.pointerEvents = '';
     flashcardBtn.classList.remove('active');
     flashcard.style.transition = '';
     flashcard.style.transform = '';
@@ -3149,6 +3151,8 @@
   }
 
   function fcDismiss(dy){
+    // A távozó fedőréteg ne nyelje el a következő főoldali koppintást.
+    flashcardOverlay.style.pointerEvents = 'none';
     flashcard.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
     flashcard.style.transform = 'translateY(' + (dy < 0 ? -320 : 320) + 'px)';
     flashcard.style.opacity = '0';
