@@ -2095,7 +2095,7 @@
   function renderMemoryTable(){
     const visible = getVisibleMemoryEntries();
     memoryTableBody.innerHTML = '';
-    memoryDelHead.style.display = memoryTrashMode ? '' : 'none';
+    memoryDelHead.style.display = 'none';
 
     const rows = visible.map((entry, index) => ({ entry, index }));
     memoryEmptyState.textContent = 'Még nincs semmi a memóriában ezen a nyelven.';
@@ -2257,6 +2257,14 @@
         saveMemoryToDisk();
         renderMemoryTable();
       });
+      tr.addEventListener('dblclick', () => {
+        if(!memoryTrashMode) return;
+        memoryEntries = memoryEntries.filter(e => e.id !== entry.id);
+        memorySelectedIds.delete(entry.id);
+        saveMemoryToDisk();
+        renderMemoryTable();
+      });
+
       tr.addEventListener('click', () => {
         if(noteInsertMode){
           const idx = memoryEntries.indexOf(entry);
@@ -2278,7 +2286,7 @@
       });
 
       tr.appendChild(numTd);
-      if(memoryTrashMode) tr.appendChild(delTd);
+      
       tr.appendChild(huTd);
       tr.appendChild(fxTd);
       tr.appendChild(huSentTd);
