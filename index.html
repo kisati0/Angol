@@ -404,12 +404,12 @@
   .history-head span{ font-size: 12px; color: var(--ink-soft); margin-left: auto; }
   .play-row{ display: flex; gap: 6px; align-items: center; }
   #allSelectBtn{ padding: 3px 10px; font-size: 12px; font-weight: 700; }
-  .play-row .icon-btn{ flex: 1; justify-content: center; padding: 7px 8px; font-size: 13px; }
-  .play-row #flashcardBtn{ flex: 1; padding: 7px 10px; }
+  .play-row .icon-btn{ flex: 0 0 auto; justify-content: center; align-items: center; height: 38px; padding: 0 10px; font-size: 13px; }
+  .play-row #flashcardBtn{ padding: 0 12px; }
   .play-row #flashcardBtn.active{ background: var(--paprika); border-color: var(--paprika); color: #fff; }
-  .play-row #playFxBtn{ flex: 1; padding: 7px 12px; }
-  .play-row #deleteModeBtn{ flex: 0 0 auto; padding: 7px 10px; }
-  .play-row #addMemBtn{ flex: 0 0 auto; padding: 7px 10px; }
+  .play-row #playFxBtn{ width: 64px; margin-left: auto; }
+  .play-row #deleteModeBtn{ padding: 0 10px; }
+  .play-row #addMemBtn{ padding: 0 10px; }
   .play-row #deleteModeBtn.active{ background: var(--red); border-color: var(--red); color: #fff; }
   .play-row #addMemBtn.active{ background: var(--teal); border-color: var(--teal); color: #fff; }
   .history-list-wrap{
@@ -422,9 +422,8 @@
   .history-scroll-edge{
     position: absolute;
     top: 0; left: -18px; right: -18px;
-    height: 5px;
-    background: #E0692F;
-    box-shadow: 0 3px 5px -1px rgba(0,0,0,0.45);
+    height: 16px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0));
     opacity: 0;
     transition: opacity 0.15s ease;
     z-index: 3;
