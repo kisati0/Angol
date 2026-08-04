@@ -1,7 +1,7 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v37 - gyakorlás mező input helyett contenteditable (Chrome autofill sáv megszüntetve)
+// Verzió: v38 - gyakorlás oldalon külön állítható margó
 
-const CACHE = 'szomondo-1-v37';
+const CACHE = 'szomondo-1-v38';
 const ASSETS = [
   './',
   './index.html',
