@@ -2062,6 +2062,20 @@
 
   let memorySelectedIds = new Set();
 
+  // Kuka módban a táblázat bármelyik sor-részére érkező kattintást itt kezeljük.
+  // A capture fázis miatt a soron belüli vezérlők sem tudják megakadályozni a törlést.
+  memoryTableBody.addEventListener('click', (event) => {
+    if (!memoryTrashMode) return;
+    const row = event.target.closest('tr[data-id]');
+    if (!row || !memoryTableBody.contains(row)) return;
+    const id = row.dataset.id;
+    if (!id) return;
+    event.stopPropagation();
+    memoryEntries = memoryEntries.filter(entry => entry.id !== id);
+    saveMemoryToDisk();
+    renderMemoryTable();
+  }, true);
+
   function isMemorySentenceEntry(e){
     return !!(e.huSentence && e.huSentence.trim() && e.fxSentence && e.fxSentence.trim());
   }
@@ -2230,7 +2244,7 @@
           memorySelectedIds.add(entry.id);
           tr.classList.add('selected');
         }
-      }, true);
+      });
 
       tr.appendChild(numTd);
       tr.appendChild(huTd);
