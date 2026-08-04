@@ -1545,6 +1545,14 @@
 
 <script>
 (function(){
+  window.addEventListener('error', function(e){
+    try{
+      var el = document.getElementById('errorStatus');
+      if(el){ el.textContent = 'Hiba: ' + (e.message || 'ismeretlen hiba'); el.classList.add('show'); }
+    }catch(_){}
+  });
+})();
+(function(){
   // --- Profil Manager ---
   const PROFILES_STORAGE_KEY = 'hu-multi-profiles-v1';
   const PROFILE_COLORS = [
@@ -1556,7 +1564,10 @@
   ];
   const MAX_PROFILES = 5;
 
-  function profileColor(id){ return PROFILE_COLORS[(id - 1) % PROFILE_COLORS.length]; }
+  function profileColor(id){
+    const n = Number.isInteger(id) && id >= 1 ? id : 1;
+    return PROFILE_COLORS[(n - 1) % PROFILE_COLORS.length];
+  }
   function applyProfileTheme(id){
     const c = profileColor(id);
     const root = document.documentElement.style;
@@ -1572,22 +1583,30 @@
     loadProfiles() {
       try {
         const raw = localStorage.getItem(PROFILES_STORAGE_KEY);
+        let list = [];
+        let activeId = 1;
         if (raw) {
           const parsed = JSON.parse(raw);
-          this.profiles = Array.isArray(parsed.profiles) ? parsed.profiles : [];
-          this.activeProfileId = parsed.activeProfileId || 1;
+          list = Array.isArray(parsed.profiles) ? parsed.profiles : [];
+          activeId = parsed.activeProfileId;
         }
-        if (!this.profiles.length) {
-          this.profiles = [{ id: 1, name: 'Profil 1' }];
+        // Discard legacy/malformed records (e.g. an older name-keyed format)
+        // that don't have a valid numeric id 1-5 + name.
+        this.profiles = list.filter(p => p && Number.isInteger(p.id) && p.id >= 1 && p.id <= MAX_PROFILES && typeof p.name === 'string' && p.name.trim());
+        if (!this.profiles.find(p => p.id === 1)) {
+          this.profiles.unshift({ id: 1, name: 'Profil 1' });
         }
+        this.activeProfileId = Number.isInteger(activeId) ? activeId : 1;
         if (!this.profiles.find(p => p.id === this.activeProfileId)) {
           this.activeProfileId = this.profiles[0].id;
         }
       } catch (e) {
+        console.error('loadProfiles failed', e);
         this.profiles = [{ id: 1, name: 'Profil 1' }];
         this.activeProfileId = 1;
       }
       applyProfileTheme(this.activeProfileId);
+      this.saveProfiles();
     },
 
     saveProfiles() {
@@ -1749,8 +1768,13 @@
 
   // --- Profil Overlay eseménykezelők ---
   function openProfileOverlay() {
-    renderProfileList();
     profilOverlay.classList.add('show');
+    try{
+      renderProfileList();
+    }catch(e){
+      console.error('renderProfileList failed', e);
+      if(profileListContainer) profileListContainer.innerHTML = '<div style="text-align:center;color:var(--red);padding:20px 0;">Hiba történt a profilok betöltésekor.</div>';
+    }
   }
 
   function closeProfileOverlay() {
@@ -4041,8 +4065,12 @@
   }
 
   // Inicializálás
-  profilManager.loadProfiles();
-  profilManager.loadDataForActiveProfile();
+  try{
+    profilManager.loadProfiles();
+    profilManager.loadDataForActiveProfile();
+  }catch(e){
+    console.error('Profil inicializálás sikertelen', e);
+  }
   renderProfileList();
   updatePlayButtonLabels();
   loadOffsets();
