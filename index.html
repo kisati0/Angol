@@ -2010,6 +2010,9 @@
       if(cnt) linkBtn.classList.add('has-links');
       linkBtn.addEventListener('click', async (ev) => {
         ev.stopPropagation();
+        // Kuka módban ne nyisson link ablakot
+        if (memoryTrashMode) return;
+
         const currentNums = (entry.linkedWordIds || [])
           .map(id => visible.findIndex(v => v.id === id))
           .filter(i => i >= 0).map(i => i + 1);
@@ -2202,18 +2205,29 @@
       linkBtn.setAttribute('aria-label', 'Szavak hozzárendelése ehhez a mondathoz');
       linkTd.appendChild(linkBtn);
 
-            tr.addEventListener('click', () => {
-        if(noteInsertMode){
+      // Sorra kattintás
+      tr.addEventListener('click', () => {
+        // Kuka mód: egy kattintással töröljük a sort
+        if (memoryTrashMode) {
+          if (confirm('Biztosan törölni szeretnéd ezt a sort?')) {
+            memoryEntries = memoryEntries.filter(e => e.id !== entry.id);
+            saveMemoryToDisk();
+            renderMemoryTable();
+          }
+          return;
+        }
+
+        if (noteInsertMode) {
           const idx = memoryEntries.indexOf(entry);
-          if(idx < 0) return;
+          if (idx < 0) return;
           const note = { id: makeId(), isNote: true, note: '', lang: selectedLang, updatedAt: Date.now() };
           memoryEntries.splice(idx, 0, note);
           saveMemoryToDisk();
           renderMemoryTable();
           return;
         }
-        if(!memorySelectMode) return;
-        if(memorySelectedIds.has(entry.id)){
+        if (!memorySelectMode) return;
+        if (memorySelectedIds.has(entry.id)) {
           memorySelectedIds.delete(entry.id);
           tr.classList.remove('selected');
         } else {
@@ -2223,7 +2237,6 @@
       });
 
       tr.appendChild(numTd);
-      
       tr.appendChild(huTd);
       tr.appendChild(fxTd);
       tr.appendChild(huSentTd);
@@ -2299,29 +2312,17 @@
     }
   });
 
+  // Kuka gomb: csak a módot kapcsolja, törlés nélkül
   memoryTrashBtn.addEventListener('click', () => {
-    if (memorySelectedIds.size > 0) {
-      // Töröljük a kijelölt elemeket
-      memoryEntries = memoryEntries.filter(e => !memorySelectedIds.has(e.id));
-      memorySelectedIds.clear();
-      memorySelectMode = false;
-      memoryAddBtn.classList.remove('active');
-      memoryAllBtn.style.display = 'none';
-      saveMemoryToDisk();
-      renderMemoryTable();
-      // Kilépünk a kuka módból, ha volt aktív
-      if (memoryTrashMode) {
-        memoryTrashMode = false;
-        memoryTrashBtn.classList.remove('active');
-        renderMemoryTable();
-      }
-      return;
-    }
-
-    // Ha nincs kijelölés, akkor kapcsoljuk a kuka módot
+    // Ha van kijelölés a memóriában, akkor töröljük a kijelölteket (a régi funkció),
+    // de a felhasználó azt kérte, hogy csak egyszer kelljen kattintani a törléshez,
+    // ezért ezt a viselkedést megszüntetjük, és csak a mód kapcsolás marad.
+    // Ha mégis szeretnénk tartani a kijelöléses törlést, akkor külön kezeljük,
+    // de most a felhasználó egyértelműen a sorra kattintásos törlést kérte.
+    // Így a kuka gomb csak a módot kapcsolja.
     memoryTrashMode = !memoryTrashMode;
     memoryTrashBtn.classList.toggle('active', memoryTrashMode);
-    // Ha bekapcsoljuk a kuka módot, akkor a kijelölés módot kapcsoljuk ki, hogy ne legyenek aktívak egyszerre
+    // Ha bekapcsoljuk a kuka módot, akkor a kijelölés módot kapcsoljuk ki
     if (memoryTrashMode) {
       if (memorySelectMode) {
         memorySelectMode = false;
@@ -2329,9 +2330,10 @@
         memoryAddBtn.classList.remove('active');
         memoryAllBtn.style.display = 'none';
       }
-      // Itt jön a kritikus rész: a memória táblázat celláit nem lehet szerkeszteni
-    } else {
-      // Ha kikapcsoljuk a kuka módot, visszaáll a szerkeszthetőség
+      // A link ablak bezárása, ha nyitva van
+      if (linkOverlay.classList.contains('show')) {
+        closeLinkModal(null);
+      }
     }
     renderMemoryTable();
   });
