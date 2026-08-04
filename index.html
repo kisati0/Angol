@@ -3957,12 +3957,38 @@
     renderPracticeWord();
   }
 
-  practicePrompt.addEventListener('click', () => {
+  function speakCurrentPracticeItem(){
     if(!practiceCurrentCorrect) return;
     const langInfo = LANGS[practiceCurrentLang] || LANGS.en;
     const answerLang = practiceDirection === 'hu' ? langInfo.tts : 'hu-HU';
     speak(practiceCurrentCorrect, answerLang);
+  }
+
+  // Gombok és a beviteli mező kivételével bárhova kattintva/koppintva
+  // (háttér, panel, szókártya, szöveg) hangosan felolvassuk az aktuális
+  // szót/mondatot — de a billentyűzet ne tűnjön el mobilon.
+  function isPracticeInteractiveTarget(target){
+    return !!(target.closest && target.closest('button, input, .icon-btn, .action-btn, .mic-size-btn'));
+  }
+
+  practiceOverlay.addEventListener('click', (e) => {
+    if(isPracticeInteractiveTarget(e.target)) return;
+    speakCurrentPracticeItem();
   });
+  practiceOverlay.addEventListener('mousedown', (e) => {
+    if(isPracticeInteractiveTarget(e.target)) return;
+    // Megakadályozza, hogy a fókusz (és vele a mobil billentyűzet) eltűnjön.
+    e.preventDefault();
+  });
+  practiceOverlay.addEventListener('touchstart', (e) => {
+    if(isPracticeInteractiveTarget(e.target)) return;
+    if(e.cancelable) e.preventDefault();
+  }, { passive: false });
+  practiceOverlay.addEventListener('touchend', (e) => {
+    if(isPracticeInteractiveTarget(e.target)) return;
+    if(e.cancelable) e.preventDefault();
+    speakCurrentPracticeItem();
+  }, { passive: false });
 
   practiceBtn.addEventListener('click', openPractice);
   practiceCloseBtn.addEventListener('click', closePracticeOverlay);
@@ -3974,7 +4000,7 @@
   });
 
   [practiceCheckBtn, practiceNextWordBtn, practiceNextGroupBtn, practiceMicBtn,
-   practicePrompt, practiceDirectionBtn].forEach(el => {
+   practiceDirectionBtn].forEach(el => {
     el.addEventListener('mousedown', (e) => e.preventDefault());
     el.addEventListener('touchstart', (e) => {
       if(e.cancelable) e.preventDefault();
@@ -4060,7 +4086,7 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw-v34.js').catch(() => {});
+      navigator.serviceWorker.register('sw-v35.js').catch(() => {});
     });
   }
 </script>

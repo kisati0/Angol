@@ -1,10 +1,10 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v34 - mobilos közvetlen érintéskezelés és cache-frissítés
+// Verzió: v35 - gyakorlás: háttérre koppintva is felolvasás, billentyűzet nem tűnik el
 
-const CACHE = 'szomondo-1-v34';
+const CACHE = 'szomondo-1-v35';
 const ASSETS = [
   './',
-  './index-v34.html',
+  './index-v35.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (e) => {
           .then(cached => {
             if (cached) return cached;
             // Ha a kért fájl nincs cache-ben, a főoldalt adjuk
-            return caches.match('./index-v34.html');
+            return caches.match('./index-v35.html');
           });
       })
   );
@@ -81,10 +81,10 @@ self.addEventListener('message', (event) => {
     // Profilváltáskor frissítsük a cache-t (az új index.html-t töltsük be)
     caches.open(CACHE)
       .then(cache => {
-        return fetch('./index-v34.html')
+        return fetch('./index-v35.html')
           .then(response => {
             if (response && response.status === 200) {
-              cache.put('./index-v34.html', response);
+              cache.put('./index-v35.html', response);
             }
           })
           .catch(() => {});
