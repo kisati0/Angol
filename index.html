@@ -2500,8 +2500,7 @@
         <div class="hist-hu">${escapeHtml(huOf(entry))}</div>
         <div class="hist-fx">${escapeHtml(fxOf(entry))}</div>
       `;
-      let activatedByTouch = false;
-      const activateHistoryItem = () => {
+      row.addEventListener('click', () => {
         if(deleteMode){
           if(deleteSelectedIds.has(entry.id)){
             deleteSelectedIds.delete(entry.id);
@@ -2525,21 +2524,6 @@
         selectedIndex = index;
         renderHistory();
         showResult(huOf(entry), fxOf(entry), true, entry.lang, entry.id);
-      };
-      // Mobilon a szókártya-ablakból való visszatérés után a click esemény
-      // elmaradhat; pointerup-kor ezért közvetlenül aktiváljuk a kártyát.
-      row.addEventListener('pointerup', (event) => {
-        if(event.pointerType === 'mouse') return;
-        activatedByTouch = true;
-        activateHistoryItem();
-        setTimeout(() => { activatedByTouch = false; }, 500);
-      });
-      row.addEventListener('click', () => {
-        if(activatedByTouch){
-          activatedByTouch = false;
-          return;
-        }
-        activateHistoryItem();
       });
       historyList.appendChild(row);
     });
@@ -3092,7 +3076,6 @@
     fcShowingHu = false;
     fcOpen = true;
     flashcardOverlay.classList.add('show');
-    flashcardOverlay.style.pointerEvents = '';
     flashcardBtn.classList.add('active');
     flashcard.style.transition = '';
     flashcard.style.transform = '';
@@ -3103,7 +3086,6 @@
   function closeFlashcard(){
     fcOpen = false;
     flashcardOverlay.classList.remove('show');
-    flashcardOverlay.style.pointerEvents = '';
     flashcardBtn.classList.remove('active');
     flashcard.style.transition = '';
     flashcard.style.transform = '';
@@ -3167,12 +3149,8 @@
   }
 
   function fcDismiss(dy){
-    // A távozó fedőréteg ne nyelje el a következő főoldali koppintást.
-    flashcardOverlay.style.pointerEvents = 'none';
-    flashcard.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-    flashcard.style.transform = 'translateY(' + (dy < 0 ? -320 : 320) + 'px)';
-    flashcard.style.opacity = '0';
-    setTimeout(closeFlashcard, 200);
+    // Azonnali bezárás: a távozó fedőablak így nem nyelheti el a következő koppintást.
+    closeFlashcard();
   }
 
   function fcEndDrag(e){
