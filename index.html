@@ -158,11 +158,12 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 10px;
+    padding: 10px 10px;
     border-radius: 10px;
     background: var(--bg);
     border: 1px solid var(--line);
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    cursor: pointer;
   }
   .profile-item.active {
     border-color: var(--gold);
@@ -1112,6 +1113,16 @@
     padding: 16px 20px 20px;
     overflow-y: auto;
   }
+  #profilOverlay{ padding-top: calc(64px + var(--top-offset, 0px)); }
+  .profile-close-btn{
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
   .link-overlay.show{ display: flex; }
   .link-panel{
     position: relative;
@@ -1529,14 +1540,11 @@
 
   <!-- Profilok Overlay -->
   <div class="link-overlay" id="profilOverlay">
-    <div class="link-panel">
+    <div class="link-panel" id="profilPanel">
+      <button class="header-icon-btn profile-close-btn" id="closeProfileBtn" aria-label="Bezárás">✕</button>
       <div class="link-title">Profilok kezelése</div>
       <div id="profileListContainer">
         <!-- A profilok listája ide fog kerülni -->
-      </div>
-      <div style="display: flex; gap: 8px; margin-top: 8px; position: relative; z-index: 1;">
-        <button class="icon-btn" id="addProfileBtn" style="flex: 1; justify-content: center; background: var(--teal); border-color: var(--teal); color: #fff;">＋ Új profil</button>
-        <button class="icon-btn" id="closeProfileBtn" style="flex: 0;">Bezár</button>
       </div>
     </div>
   </div>
@@ -1645,125 +1653,85 @@
       renderProfileList();
     },
 
-    addProfile(name) {
-      if (this.profiles.length >= MAX_PROFILES) {
-        showError('Maximum 5 profilt hozhatsz létre.');
-        return null;
+    // Creates the profile record on first use (all 5 slots are always shown,
+    // but a slot only gets a saved record once it's actually selected/renamed).
+    ensureProfile(id) {
+      let p = this.profiles.find(p => p.id === id);
+      if (!p) {
+        p = { id, name: 'Profil ' + id };
+        this.profiles.push(p);
+        this.profiles.sort((a, b) => a.id - b.id);
+        this.saveProfiles();
       }
-      const used = this.profiles.map(p => p.id);
-      let nextId = 1;
-      while (used.includes(nextId)) nextId++;
-      this.profiles.push({ id: nextId, name: name });
-      this.saveProfiles();
+      return p;
+    },
+
+    selectProfile(id) {
+      this.ensureProfile(id);
+      this.setActiveProfile(id);
       renderProfileList();
-      return nextId;
     },
 
     renameProfile(id, newName) {
-      const profile = this.profiles.find(p => p.id === id);
-      if (!profile) return false;
+      const profile = this.ensureProfile(id);
       profile.name = newName;
       this.saveProfiles();
       renderProfileList();
       return true;
-    },
-
-    deleteProfile(id) {
-      if (this.profiles.length <= 1) {
-        showError('Nem törölheted az utolsó profilt.');
-        return;
-      }
-      if (id === 1) {
-        showError('Az alapértelmezett profilt nem törölheted.');
-        return;
-      }
-      this.profiles = this.profiles.filter(p => p.id !== id);
-      if (this.activeProfileId === id) {
-        this.activeProfileId = this.profiles[0].id;
-        applyProfileTheme(this.activeProfileId);
-      }
-      this.saveProfiles();
-      this.loadDataForActiveProfile();
-      renderProfileList();
     }
   };
 
   // --- Profil UI ---
   const profilOverlay = document.getElementById('profilOverlay');
   const profileListContainer = document.getElementById('profileListContainer');
-  const addProfileBtn = document.getElementById('addProfileBtn');
   const closeProfileBtn = document.getElementById('closeProfileBtn');
 
   function renderProfileList() {
     if (!profileListContainer) return;
     profileListContainer.innerHTML = '';
-    const profiles = profilManager.profiles;
-    if (!profiles.length) {
-      profileListContainer.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:20px 0;">Nincs elérhető profil.</div>';
-      return;
-    }
-    profiles.forEach((profile) => {
-      const isActive = profile.id === profilManager.activeProfileId;
+    for (let id = 1; id <= MAX_PROFILES; id++) {
+      const stored = profilManager.profiles.find(p => p.id === id);
+      const profile = stored || { id, name: 'Profil ' + id };
+      const isActive = id === profilManager.activeProfileId;
+      const color = profileColor(id);
+
       const item = document.createElement('div');
       item.className = `profile-item ${isActive ? 'active' : ''}`;
+      if (isActive) {
+        item.style.borderColor = color.hex;
+        item.style.background = `rgba(${color.rgb},0.08)`;
+      }
+      item.addEventListener('click', () => {
+        profilManager.selectProfile(id);
+      });
 
       const dot = document.createElement('span');
       dot.className = 'profile-color-dot';
-      dot.style.backgroundColor = profileColor(profile.id).hex;
+      dot.style.backgroundColor = color.hex;
 
       const nameSpan = document.createElement('span');
       nameSpan.className = 'profile-name';
       nameSpan.textContent = profile.name;
-
-      const selectBtn = document.createElement('button');
-      selectBtn.className = `icon-btn select-btn ${isActive ? 'active' : ''}`;
-      selectBtn.textContent = isActive ? 'Aktív' : 'Kiválaszt';
-      selectBtn.addEventListener('click', () => {
-        if (!isActive) {
-          profilManager.setActiveProfile(profile.id);
-        }
-      });
 
       const renameBtn = document.createElement('button');
       renameBtn.className = 'icon-btn';
       renameBtn.textContent = '✏️';
       renameBtn.style.padding = '4px 8px';
       renameBtn.style.fontSize = '14px';
-      renameBtn.addEventListener('click', () => {
+      renameBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const newName = prompt(`Add meg a profil új nevét (jelenleg: "${profile.name}"):`, profile.name);
         if (newName && newName.trim() && newName.trim() !== profile.name) {
-          profilManager.renameProfile(profile.id, newName.trim());
-        }
-      });
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'icon-btn';
-      deleteBtn.textContent = '🗑️';
-      deleteBtn.style.padding = '4px 8px';
-      deleteBtn.style.fontSize = '14px';
-      deleteBtn.style.color = 'var(--red)';
-      if (profile.id === 1 || profilManager.profiles.length <= 1) {
-        deleteBtn.style.opacity = '0.3';
-        deleteBtn.style.pointerEvents = 'none';
-      }
-      deleteBtn.addEventListener('click', () => {
-        if (confirm(`Biztosan törölni szeretnéd a "${profile.name}" profilt?`)) {
-          profilManager.deleteProfile(profile.id);
+          profilManager.renameProfile(id, newName.trim());
         }
       });
 
       item.appendChild(dot);
       item.appendChild(nameSpan);
-      const btnGroup = document.createElement('div');
-      btnGroup.style.display = 'flex';
-      btnGroup.style.gap = '4px';
-      btnGroup.appendChild(selectBtn);
-      btnGroup.appendChild(renameBtn);
-      btnGroup.appendChild(deleteBtn);
-      item.appendChild(btnGroup);
+      item.appendChild(renameBtn);
 
       profileListContainer.appendChild(item);
-    });
+    }
   }
 
   // --- Profil Overlay eseménykezelők ---
@@ -1780,16 +1748,6 @@
   function closeProfileOverlay() {
     profilOverlay.classList.remove('show');
   }
-
-  addProfileBtn.addEventListener('click', () => {
-    const name = prompt('Add meg az új profil nevét:');
-    if (name && name.trim()) {
-      const newId = profilManager.addProfile(name.trim());
-      if (newId) {
-        profilManager.setActiveProfile(newId);
-      }
-    }
-  });
 
   closeProfileBtn.addEventListener('click', closeProfileOverlay);
   profilOverlay.addEventListener('click', (e) => {
