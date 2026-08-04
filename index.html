@@ -309,7 +309,7 @@
   }
   .icon-btn.flash-incorrect{ animation: flashRed 0.6s ease; }
   .icon-btn.flash-correct{ animation: flashGreen 0.6s ease; }
-  .practice-answer-row input.correct-bg{
+  .practice-answer-row #practiceInput.correct-bg{
     background: rgba(46,125,70,0.15);
     border-color: var(--green);
   }
@@ -869,7 +869,7 @@
     position: relative;
     z-index: 1;
   }
-  .practice-answer-row input{
+  .practice-answer-row #practiceInput{
     flex: 1;
     padding: 10px 12px;
     border-radius: 12px;
@@ -878,9 +878,18 @@
     font-size: 15px;
     background: rgba(0,0,0,0.035);
     color: var(--ink);
-  }
-  .practice-answer-row input:focus{
     outline: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 4.5em;
+    overflow-y: auto;
+  }
+  .practice-answer-row #practiceInput:empty::before{
+    content: attr(data-placeholder);
+    color: var(--ink);
+    opacity: 0.45;
+  }
+  .practice-answer-row #practiceInput:focus{
     background: rgba(var(--paprika-rgb),0.06);
     box-shadow: 0 0 0 1px rgba(var(--paprika-rgb),0.3);
   }
@@ -1390,7 +1399,7 @@
         <div class="practice-card">
           <div class="practice-prompt" id="practicePrompt"></div>
           <div class="practice-answer-row">
-            <input type="text" id="practiceInput" placeholder="Írd be a fordítást" name="practice-answer" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" data-lpignore="true" data-form-type="other">
+            <div id="practiceInput" contenteditable="true" data-placeholder="Írd be a fordítást" translate="no" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
             <button class="action-btn" id="practiceMicBtn" aria-label="Válasz bemondása">🎤</button>
           </div>
           <div class="practice-controls-row">
@@ -3922,7 +3931,7 @@
     practiceCurrentLang = entry.lang;
     practiceProgress.textContent = (practiceGroupIndex + 1) + '. csoport (' + totalGroups + ' közül) — ' + ((practiceWordIndex % group.length) + 1) + '/' + group.length;
     practicePrompt.textContent = promptText;
-    practiceInput.value = '';
+    practiceInput.textContent = '';
     practiceFeedback.textContent = '';
     practiceFeedback.className = 'practice-feedback';
     practiceCheckBtn.classList.remove('flash-correct','flash-incorrect');
@@ -3931,7 +3940,7 @@
   }
 
   function checkPracticeAnswer(){
-    const answer = practiceInput.value;
+    const answer = practiceInput.textContent;
     if(!answer || !answer.trim()) return;
     const correct = norm(answer) === norm(practiceCurrentCorrect);
     practiceCheckBtn.classList.remove('flash-correct','flash-incorrect');
@@ -3968,7 +3977,7 @@
   // (háttér, panel, szókártya, szöveg) hangosan felolvassuk az aktuális
   // szót/mondatot — de a billentyűzet ne tűnjön el mobilon.
   function isPracticeInteractiveTarget(target){
-    return !!(target.closest && target.closest('button, input, .icon-btn, .action-btn, .mic-size-btn'));
+    return !!(target.closest && target.closest('button, input, #practiceInput, .icon-btn, .action-btn, .mic-size-btn'));
   }
 
   practiceOverlay.addEventListener('click', (e) => {
@@ -4013,7 +4022,10 @@
 
   practiceCheckBtn.addEventListener('click', checkPracticeAnswer);
   practiceInput.addEventListener('keydown', (e) => {
-    if(e.key === 'Enter') checkPracticeAnswer();
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      checkPracticeAnswer();
+    }
   });
   practiceNextWordBtn.addEventListener('click', goToNextPracticeWord);
 
@@ -4049,7 +4061,7 @@
     };
     practiceRecognition.onresult = (e) => {
       if(!e.results || !e.results[0] || !e.results[0][0]) return;
-      practiceInput.value = e.results[0][0].transcript;
+      practiceInput.textContent = e.results[0][0].transcript;
       checkPracticeAnswer();
     };
     practiceMicBtn.addEventListener('click', () => {
