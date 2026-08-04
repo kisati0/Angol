@@ -1324,6 +1324,12 @@
     position: relative;
     z-index: 1;
   }
+  /* Kuka módban ne lehessen szerkeszteni a memória táblázat celláit */
+  #memoryTable.trash-mode td[contenteditable] {
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -2096,6 +2102,13 @@
     const visible = getVisibleMemoryEntries();
     memoryTableBody.innerHTML = '';
     memoryDelHead.style.display = memoryTrashMode ? '' : 'none';
+    // kuka módban ne legyen szerkeszthető
+    const trashMode = memoryTrashMode;
+    if (trashMode) {
+      memoryTable.classList.add('trash-mode');
+    } else {
+      memoryTable.classList.remove('trash-mode');
+    }
 
     const rows = visible.map((entry, index) => ({ entry, index }));
     memoryEmptyState.textContent = 'Még nincs semmi a memóriában ezen a nyelven.';
@@ -2117,9 +2130,11 @@
         const noteTd = document.createElement('td');
         noteTd.className = 'mem-edit memory-note-text';
         noteTd.colSpan = 5;
-        noteTd.contentEditable = noteInsertMode ? 'false' : 'true';
+        // kuka módban ne legyen szerkeszthető
+        noteTd.contentEditable = (noteInsertMode && !trashMode) ? 'false' : (!trashMode ? 'true' : 'false');
         noteTd.textContent = entry.note || '';
         noteTd.addEventListener('input', () => {
+          if (trashMode) return; // kuka módban ne menthessen
           entry.note = noteTd.textContent;
           entry.updatedAt = Date.now();
           saveMemoryToDisk();
@@ -2145,11 +2160,12 @@
 
       const huTd = document.createElement('td');
       huTd.className = 'mem-edit';
-      huTd.contentEditable = (memorySelectMode || findMode || noteInsertMode) ? 'false' : 'true';
+      // kuka módban ne legyen szerkeszthető
+      huTd.contentEditable = (memorySelectMode || findMode || noteInsertMode || trashMode) ? 'false' : 'true';
       huTd.textContent = entry.hu || '';
       const fxTd = document.createElement('td');
       fxTd.className = 'mem-edit';
-      fxTd.contentEditable = (memorySelectMode || findMode || noteInsertMode) ? 'false' : 'true';
+      fxTd.contentEditable = (memorySelectMode || findMode || noteInsertMode || trashMode) ? 'false' : 'true';
       fxTd.textContent = entry.foreign || '';
 
       if(findMode){
@@ -2169,11 +2185,11 @@
       }
       const huSentTd = document.createElement('td');
       huSentTd.className = 'mem-edit';
-      huSentTd.contentEditable = (memorySelectMode || noteInsertMode) ? 'false' : 'true';
+      huSentTd.contentEditable = (memorySelectMode || noteInsertMode || trashMode) ? 'false' : 'true';
       huSentTd.textContent = entry.huSentence || '';
       const fxSentTd = document.createElement('td');
       fxSentTd.className = 'mem-edit';
-      fxSentTd.contentEditable = (memorySelectMode || noteInsertMode) ? 'false' : 'true';
+      fxSentTd.contentEditable = (memorySelectMode || noteInsertMode || trashMode) ? 'false' : 'true';
       fxSentTd.textContent = entry.fxSentence || '';
 
       const linkTd = document.createElement('td');
@@ -2284,7 +2300,8 @@
   });
 
   memoryTrashBtn.addEventListener('click', () => {
-    if(memorySelectedIds.size > 0){
+    if (memorySelectedIds.size > 0) {
+      // Töröljük a kijelölt elemeket
       memoryEntries = memoryEntries.filter(e => !memorySelectedIds.has(e.id));
       memorySelectedIds.clear();
       memorySelectMode = false;
@@ -2292,10 +2309,30 @@
       memoryAllBtn.style.display = 'none';
       saveMemoryToDisk();
       renderMemoryTable();
+      // Kilépünk a kuka módból, ha volt aktív
+      if (memoryTrashMode) {
+        memoryTrashMode = false;
+        memoryTrashBtn.classList.remove('active');
+        renderMemoryTable();
+      }
       return;
     }
+
+    // Ha nincs kijelölés, akkor kapcsoljuk a kuka módot
     memoryTrashMode = !memoryTrashMode;
     memoryTrashBtn.classList.toggle('active', memoryTrashMode);
+    // Ha bekapcsoljuk a kuka módot, akkor a kijelölés módot kapcsoljuk ki, hogy ne legyenek aktívak egyszerre
+    if (memoryTrashMode) {
+      if (memorySelectMode) {
+        memorySelectMode = false;
+        memorySelectedIds.clear();
+        memoryAddBtn.classList.remove('active');
+        memoryAllBtn.style.display = 'none';
+      }
+      // Itt jön a kritikus rész: a memória táblázat celláit nem lehet szerkeszteni
+    } else {
+      // Ha kikapcsoljuk a kuka módot, visszaáll a szerkeszthetőség
+    }
     renderMemoryTable();
   });
 
@@ -2321,6 +2358,8 @@
     noteInsertMode = false;
     memoryNoteBtn.classList.remove('find-on');
     reshuffleAreaTheme('main');
+    // visszaállítjuk a szerkeszthetőséget
+    memoryTable.classList.remove('trash-mode');
   }
   memoryCloseBtn.addEventListener('click', closeMemoryOverlay);
   memoryOverlay.addEventListener('click', (e) => {
