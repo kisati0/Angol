@@ -1324,8 +1324,6 @@
         <button class="icon-btn menu-btn-small" id="menuBtn" aria-label="Menü">⋯</button>
         <button class="icon-btn menu-btn-small" id="saveBtn" aria-label="Mentés">＋</button>
         <div class="menu-panel" id="menuPanel">
-          <button id="profileMenuItem">👤 Profilok</button>
-          <div class="menu-sep"></div>
           <button id="memoryOpenBtn">🧠 Memória</button>
           <button id="apiOpenBtn">🌐 Fordító API</button>
           <button id="marginOpenBtn">📏 Képernyő margó</button>
@@ -1335,6 +1333,8 @@
             <button class="theme-area-btn" data-area="memory">Memória <span>Ki</span></button>
             <button class="theme-area-btn" data-area="practice">Gyakorlás <span>Ki</span></button>
             <button class="theme-area-btn" data-area="flashcard">Szókártya <span>Ki</span></button>
+            <div class="menu-sep"></div>
+            <button id="profileMenuItem" style="font-size:14px;padding:10px 14px;">👤 Profilok</button>
           </div>
           <div class="menu-sep"></div>
           <button class="lang-option" data-lang="en"><span>🇺🇸</span>Angol</button>
@@ -1806,9 +1806,7 @@
   // --- Menü elem ---
   const profileMenuItem = document.getElementById('profileMenuItem');
   if (profileMenuItem) {
-    profileMenuItem.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
+    profileMenuItem.addEventListener('click', () => {
       menuPanel.classList.remove('show');
       openProfileOverlay();
     });
