@@ -1609,7 +1609,6 @@
     },
 
     loadDataForActiveProfile() {
-      // Frissítsük a színeket az aktív profilhoz
       updateProfileColors();
       loadDictionary();
       loadMemory();
@@ -1690,12 +1689,10 @@
     const color = PROFILE_COLORS[profile.colorIndex];
     if (!color) return;
 
-    // Frissítsük a CSS változókat
     document.documentElement.style.setProperty('--profile-color', color.hex);
     document.documentElement.style.setProperty('--profile-color-rgb', color.rgb);
     document.documentElement.style.setProperty('--profile-color-deep', color.deep);
 
-    // Frissítsük a meta theme-color-t is
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) metaTheme.content = color.hex;
   }
