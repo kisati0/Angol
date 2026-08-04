@@ -404,14 +404,12 @@
   .history-head span{ font-size: 12px; color: var(--ink-soft); margin-left: auto; }
   .play-row{ display: flex; gap: 6px; align-items: center; }
   #allSelectBtn{ padding: 3px 10px; font-size: 12px; font-weight: 700; }
-  .play-row .icon-btn{ flex: 1; justify-content: center; padding: 5px 6px; font-size: 12px; }
-  .play-row #orderBtn{ flex: 0 0 auto; padding: 5px 8px; }
-  .play-row #flashcardBtn{ flex: 1; padding: 5px 8px; }
+  .play-row .icon-btn{ flex: 1; justify-content: center; padding: 7px 8px; font-size: 13px; }
+  .play-row #flashcardBtn{ flex: 1; padding: 7px 10px; }
   .play-row #flashcardBtn.active{ background: var(--paprika); border-color: var(--paprika); color: #fff; }
-  .play-row #playFxBtn{ flex: 0 0 auto; padding: 5px 10px; }
-  .play-row #playAllBtn{ flex: 0 0 auto; padding: 5px 10px; }
-  .play-row #deleteModeBtn{ flex: 0 0 auto; padding: 5px 8px; }
-  .play-row #addMemBtn{ flex: 0 0 auto; padding: 5px 8px; }
+  .play-row #playFxBtn{ flex: 1; padding: 7px 12px; }
+  .play-row #deleteModeBtn{ flex: 0 0 auto; padding: 7px 10px; }
+  .play-row #addMemBtn{ flex: 0 0 auto; padding: 7px 10px; }
   .play-row #deleteModeBtn.active{ background: var(--red); border-color: var(--red); color: #fff; }
   .play-row #addMemBtn.active{ background: var(--teal); border-color: var(--teal); color: #fff; }
   .history-list-wrap{
@@ -425,8 +423,8 @@
     position: absolute;
     top: 0; left: -18px; right: -18px;
     height: 5px;
-    background: linear-gradient(to bottom, #E0692F 0%, #1a1a1a 65%, #000000 100%);
-    box-shadow: 0 6px 10px -2px rgba(0,0,0,0.5);
+    background: #E0692F;
+    box-shadow: 0 3px 5px -1px rgba(0,0,0,0.45);
     opacity: 0;
     transition: opacity 0.15s ease;
     z-index: 3;
@@ -1427,8 +1425,6 @@
       <button class="icon-btn" id="deleteModeBtn" aria-label="Törlés mód">✕</button>
       <button class="icon-btn" id="addMemBtn" aria-label="Mentés memóriába mód">＋</button>
       <button class="icon-btn" id="playFxBtn">▶ Angol</button>
-      <button class="icon-btn" id="playAllBtn">▶ Angol + Magyar</button>
-      <button class="icon-btn" id="orderBtn" aria-label="Sorrend csere">⇅</button>
       <button class="icon-btn" id="flashcardBtn">Szókártya</button>
     </div>
     <div class="history-list-wrap">
@@ -1552,8 +1548,6 @@
   });
   const dictCount = document.getElementById('dictCount');
   const playFxBtn = document.getElementById('playFxBtn');
-  const playAllBtn = document.getElementById('playAllBtn');
-  const orderBtn = document.getElementById('orderBtn');
   const flashcardBtn = document.getElementById('flashcardBtn');
   const flashcardOverlay = document.getElementById('flashcardOverlay');
   const flashcard = document.getElementById('flashcard');
@@ -1594,7 +1588,6 @@
   let activeExampleEntry = null;   // the memory row behind the sentence on screen
   let playingMode = null;
   let stopPlayback = false;
-  let huFirst = false;
   let deleteMode = false;
   let deleteSelectedIds = new Set();
   let addMemMode = false;
@@ -1672,9 +1665,6 @@
   function updatePlayButtonLabels(){
     const tag = LANGS[selectedLang].tag;
     if(playingMode !== 'fx') playFxBtn.textContent = '▶ ' + tag;
-    if(playingMode !== 'fx-hu'){
-      playAllBtn.textContent = huFirst ? ('▶ HU+' + tag) : ('▶ ' + tag + '+HU');
-    }
     memoryLangTag.textContent = tag;
     memoryColHead.textContent = tag + ' szó';
     memoryColHeadSentence.textContent = tag + ' mondat';
@@ -3193,26 +3183,12 @@
     if(!group.length) return;
     playingMode = mode;
     playFxBtn.textContent = mode === 'fx' ? '■' : ('▶ ' + LANGS[selectedLang].tag);
-    playAllBtn.textContent = mode === 'fx-hu' ? '■' : (huFirst ? ('▶ HU+' + LANGS[selectedLang].tag) : ('▶ ' + LANGS[selectedLang].tag + '+HU'));
     while(!stopPlayback){
       for(const entry of group){
         if(stopPlayback) break;
         const langInfo = LANGS[entry.lang] || LANGS.en;
-        if(mode === 'fx-hu' && huFirst){
-          await speakAsync(huOf(entry), 'hu-HU');
-          if(stopPlayback) break;
-          await wait(250);
-          await speakAsync(fxOf(entry), langInfo.tts);
-          if(stopPlayback) break;
-        } else {
-          await speakAsync(fxOf(entry), langInfo.tts);
-          if(stopPlayback) break;
-          if(mode === 'fx-hu'){
-            await wait(250);
-            await speakAsync(huOf(entry), 'hu-HU');
-            if(stopPlayback) break;
-          }
-        }
+        await speakAsync(fxOf(entry), langInfo.tts);
+        if(stopPlayback) break;
         await wait(350);
       }
     }
@@ -3220,14 +3196,8 @@
     playingMode = null;
     updatePlayButtonLabels();
   }
-  orderBtn.addEventListener('click', () => {
-    huFirst = !huFirst;
-    orderBtn.classList.toggle('order-active', huFirst);
-    updatePlayButtonLabels();
-  });
 
   playFxBtn.addEventListener('click', () => runPlayback('fx'));
-  playAllBtn.addEventListener('click', () => runPlayback('fx-hu'));
 
   // --- language detection (heuristic) ---
   const HU_WORDS = new Set(['a','az','és','vagy','de','hogy','nem','igen','én','te','ő','mi','ti','ők','ez','egy','van','vagyok','volt','lesz','kell','lehet','jó','rossz','nagy','kicsi','szeretlek','szia','köszönöm','kérem','hol','mikor','miért','hogyan','mennyi','ki','kicsoda','nagyon','is','csak','még','már','itt','ott']);
