@@ -2500,7 +2500,8 @@
         <div class="hist-hu">${escapeHtml(huOf(entry))}</div>
         <div class="hist-fx">${escapeHtml(fxOf(entry))}</div>
       `;
-      row.addEventListener('click', () => {
+      let activatedByTouch = false;
+      const activateHistoryItem = () => {
         if(deleteMode){
           if(deleteSelectedIds.has(entry.id)){
             deleteSelectedIds.delete(entry.id);
@@ -2524,6 +2525,21 @@
         selectedIndex = index;
         renderHistory();
         showResult(huOf(entry), fxOf(entry), true, entry.lang, entry.id);
+      };
+      // Mobilon a szókártya-ablakból való visszatérés után a click esemény
+      // elmaradhat; pointerup-kor ezért közvetlenül aktiváljuk a kártyát.
+      row.addEventListener('pointerup', (event) => {
+        if(event.pointerType === 'mouse') return;
+        activatedByTouch = true;
+        activateHistoryItem();
+        setTimeout(() => { activatedByTouch = false; }, 500);
+      });
+      row.addEventListener('click', () => {
+        if(activatedByTouch){
+          activatedByTouch = false;
+          return;
+        }
+        activateHistoryItem();
       });
       historyList.appendChild(row);
     });

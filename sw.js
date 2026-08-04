@@ -1,7 +1,7 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v28 - érintési javítások és cache-frissítés
+// Verzió: v29 - mobil érintési javítások és cache-frissítés
 
-const CACHE = 'szomondo-1-v28';
+const CACHE = 'szomondo-1-v29';
 const ASSETS = [
   './',
   './index.html',
