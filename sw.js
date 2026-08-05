@@ -1,7 +1,7 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v38 - gyakorlás oldalon külön állítható margó
+// Verzió: v39 - E-könyv olvasó (epub, szó/mondat mentés, könyvjelző)
 
-const CACHE = 'szomondo-1-v38';
+const CACHE = 'szomondo-1-v50';
 const ASSETS = [
   './',
   './index.html',
