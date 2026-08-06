@@ -590,6 +590,10 @@
   .memory-toolbar .mem-toolbar-btn{ flex:0 0 42%; }
   .memory-book-back{ margin:4px 0 8px; }
   .memory-library-title{ margin:8px 2px 10px; color:var(--ink-soft); font-size:12px; font-weight:700; letter-spacing:.03em; }
+  .chapter-edit-title{ display:inline-block; min-width:42px; padding:3px 6px; border-bottom:1px dashed var(--line); color:var(--ink); outline:none; }
+  #memoryBookTable .chapter-edit{ outline:none; vertical-align:top; }
+  #memoryBookTable .chapter-edit:focus{ background:rgba(var(--paprika-rgb),.12); }
+  .chapter-row-delete{ min-width:30px; padding:3px 6px; color:var(--ink-soft); }
   #practiceNextGroupBtn.flash-white{
     box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 0 16px 4px rgba(255,255,255,0.35);
   }
@@ -2324,8 +2328,17 @@
       return;
     }
     const chapters=currentBookTranslations();
-    if(memoryBookChapter!=null){ const rows=chapters[memoryBookChapter]||[]; memoryBookView.innerHTML='<div class="memory-library-title">Fejezetfordítások</div><button class="icon-btn memory-book-back" id="memoryBookBackBtn">← Fejezetek</button><table id="memoryBookTable"><thead><tr><th>Idegen mondat</th><th>Magyar mondat</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+escapeHtml(r.foreign||'')+'</td><td>'+escapeHtml(r.hu||'')+'</td></tr>').join('')+'</tbody></table>'+(rows.length?'':'<div class="empty-state">Nincs mondat ebben a fejezetben.</div>');
-      document.getElementById('memoryBookBackBtn').addEventListener('click',()=>{memoryBookChapter=null;renderMemoryBookView();}); return; }
+    if(memoryBookChapter!=null){
+      const rows=chapters[memoryBookChapter]||[];
+      memoryBookView.innerHTML='<div class="memory-library-title">Fejezetfordítások – Fejezet <span class="chapter-edit-title" id="memoryChapterTitle" contenteditable="true">'+escapeHtml(memoryBookChapter)+'</span></div><button class="icon-btn memory-book-back" id="memoryBookBackBtn">← Fejezetek</button><table id="memoryBookTable"><thead><tr><th>Idegen mondat</th><th>Magyar mondat</th><th></th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td class="chapter-edit" contenteditable="true" data-chapter-cell="'+i+'" data-field="foreign">'+escapeHtml(r.foreign||'')+'</td><td class="chapter-edit" contenteditable="true" data-chapter-cell="'+i+'" data-field="hu">'+escapeHtml(r.hu||'')+'</td><td><button class="icon-btn chapter-row-delete" data-delete-row="'+i+'">×</button></td></tr>').join('')+'</tbody></table><button class="icon-btn memory-book-back" id="memoryAddChapterRow">＋ Új mondat</button>';
+      const save=()=>{const all=loadBookTranslations();all[currentTranslationBookId()]=chapters;saveBookTranslations(all);};
+      document.getElementById('memoryBookBackBtn').addEventListener('click',()=>{memoryBookChapter=null;renderMemoryBookView();});
+      document.getElementById('memoryChapterTitle').addEventListener('blur',e=>{const next=e.target.textContent.trim();const previous=memoryBookChapter;if(!next||next===previous){e.target.textContent=previous;return;}const all=loadBookTranslations(),bookId=currentTranslationBookId();all[bookId][next]=(all[bookId][next]||[]).concat(all[bookId][previous]||[]);delete all[bookId][previous];saveBookTranslations(all);memoryBookChapter=next;renderMemoryBookView();});
+      memoryBookView.querySelectorAll('[data-chapter-cell]').forEach(cell=>cell.addEventListener('blur',()=>{const row=rows[Number(cell.dataset.chapterCell)];if(row){row[cell.dataset.field]=cell.textContent.trim();save();}}));
+      memoryBookView.querySelectorAll('[data-delete-row]').forEach(btn=>btn.addEventListener('click',()=>{rows.splice(Number(btn.dataset.deleteRow),1);save();renderMemoryBookView();}));
+      document.getElementById('memoryAddChapterRow').addEventListener('click',()=>{rows.push({foreign:'',hu:''});save();renderMemoryBookView();});
+      return;
+    }
     const keys=Object.keys(chapters).sort((a,b)=>Number(a)-Number(b));
     memoryBookView.innerHTML='<div class="memory-library-title">Fejezetfordítások</div><button class="icon-btn memory-book-back" id="memoryBooksBackBtn">← Könyvek</button>'+(keys.length?'<div class="memory-book-grid">'+keys.map(ch=>'<button class="memory-chapter-card" data-chapter="'+escapeHtml(ch)+'">'+escapeHtml('Fejezet '+ch)+'<small>'+chapters[ch].length+' mondat</small></button>').join('')+'</div>':'<div class="empty-state">Ehhez a könyvhöz még nincs feltöltött fejezetfordítás.</div>');
     document.getElementById('memoryBooksBackBtn').addEventListener('click',()=>{memoryBookId=null;memoryBookChapter=null;updateMemoryToolbar();renderMemoryBookView();});
