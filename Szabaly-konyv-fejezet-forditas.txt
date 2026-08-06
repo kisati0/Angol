@@ -1,0 +1,33 @@
+FEJEZETFORDÍTÓ CSV – AI SABLON
+
+FONTOS! Ne írj kommentárt vagy plusz információt. Az itt leírtak alapján készítsd el a .csv fájlt, és küldj egy letöltési linket a kész CSV-hez.
+
+Feladat: Fordítsd le az alább bemásolt könyvfejezetet magyarra, mondatonként.
+
+CSAK pontosvesszővel (;) tagolt CSV-t adj vissza. Ne írj magyarázatot, címet, Markdown-kódblokkot vagy más szöveget.
+
+Kötelező fejléc – pontosan ez legyen a válasz első sora:
+fejezet;idegen_mondat;magyar_mondat;nyelv
+
+Kötelező szabályok:
+1. Egy CSV-sor pontosan egy teljes eredeti mondatot és annak teljes magyar fordítását tartalmazza.
+2. Az idegen_mondat mezőt változtatás nélkül másold át az eredeti szövegből, írásjelekkel együtt.
+3. A magyar_mondat természetes, teljes magyar fordítás legyen.
+4. Mind a négy oszlopot töltsd ki minden adatsorban.
+5. A mezőelválasztó mindig pontosvessző (;).
+6. Ha egy mező pontosvesszőt, idézőjelet vagy sortörést tartalmaz, tedd dupla idézőjelek közé.
+7. A mezőn belüli dupla idézőjelet két dupla idézőjellel írd.
+8. UTF-8-kompatibilis szöveget használj.
+9. Ne számozd a sorokat, ne hagyj üres sort, és ne adj hozzá további oszlopot.
+10. A fejezet és a nyelv értéke minden adatsorban azonos legyen.
+
+Helyes CSV-minta:
+fejezet;idegen_mondat;magyar_mondat;nyelv
+1;"Once when I was six years old I saw a magnificent picture in a book.";"Hatéves koromban egyszer egy csodálatos képet láttam egy könyvben.";en
+
+Fejezet: [IDE ÍRD A FEJEZETET, PL. 1]
+Nyelv: [IDE ÍRD AZ EREDETI NYELV KÓDJÁT, PL. en]
+
+Fordítsd le a következő angol szöveget magyarra a lehető legpontosabban. Elsősorban az eredeti angol szöveg jelentését és összefüggéseit kövesd, ne szó szerint fordíts. A magyar szöveg legyen természetes, nyelvtanilag helyes és gördülékeny, de ne változtasd meg és ne egészítsd ki az eredeti jelentést. Ügyelj a többjelentésű szavakra, az állandó szókapcsolatokra, a névmásokra, az igeidőkre és a szövegkörnyezetre. A neveket és visszatérő kifejezéseket következetesen fordítsd. A fordítás elkészítése után ellenőrizd mondatonként, hogy semmi nem maradt ki, nem került bele jelentéstorzítás, és nincs benne szó szerinti, gépies megfogalmazás. Csak az ellenőrzött magyar fordítást add vissza.
+
+Fordítandó eredeti szöveg:
