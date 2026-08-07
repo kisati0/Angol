@@ -5076,15 +5076,17 @@ Fordítandó eredeti szöveg:
 
   async function ebookShowTranslation(text, isSentence){
     if(!text){ ebookBarTranslation.textContent = ''; return; }
-    const profileId = ebookGetSelectedProfileId();
-    const arr = ebookLoadMemoryForProfile(profileId);
-    const n = norm(text);
-    const field = isSentence ? 'fxSentence' : 'foreign';
-    const huField = isSentence ? 'huSentence' : 'hu';
-    const found = arr.find(e => e.lang === ebookSettings.lang && norm(e[field] || '') === n && e[huField] && e[huField].trim());
-    if(found){
-      ebookBarTranslation.textContent = found[huField];
-      return;
+    // Mondatfordítás a fejezetfordításból jön (a későbbi wrapper ezt ellenőrzi).
+    // A szavas memória csak egyetlen szó fordítását adhatja vissza.
+    if(!isSentence){
+      const profileId = ebookGetSelectedProfileId();
+      const arr = ebookLoadMemoryForProfile(profileId);
+      const n = norm(text);
+      const found = arr.find(e => e.lang === ebookSettings.lang && norm(e.foreign || '') === n && e.hu && e.hu.trim());
+      if(found){
+        ebookBarTranslation.textContent = found.hu;
+        return;
+      }
     }
     // Lekérés közben nem mutatunk betöltésjelzőt, hogy a felső sáv ne ugorjon meg.
     ebookBarTranslation.textContent = '';
