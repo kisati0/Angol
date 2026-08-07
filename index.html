@@ -2473,24 +2473,26 @@ Fordítandó eredeti szöveg:
     const findResults = document.createElement('div');
     findResults.className = 'find-results';
     const visible = getVisibleMemoryEntries();
+    let findWordNumber = 0;
+    const linkableEntries = visible.filter(entry => !entry.isNote);
     const hits = visible
-      .map((entry, index) => ({ entry, index }))
-      .filter(({ entry }) => sentenceHasWord(entry.fxSentence, findTerm) ||
-                             sentenceHasWord(entry.huSentence, findTerm));
+      .map(entry => ({ entry, number:entry.isNote ? null : ++findWordNumber }))
+      .filter(({ entry }) => !entry.isNote && (sentenceHasWord(entry.fxSentence, findTerm) ||
+                             sentenceHasWord(entry.huSentence, findTerm)));
 
     const head = document.createElement('div');
     head.className = 'find-head';
     head.innerHTML = '<b>' + escapeHtml(findTerm) + '</b> — ' + hits.length +
-      ' mondatban' + (hits.length ? ' (sorszámok: ' + hits.map(h => h.index + 1).join(', ') + ')' : '');
+      ' mondatban' + (hits.length ? ' (sorszámok: ' + hits.map(h => h.number).join(', ') + ')' : '');
     findResults.appendChild(head);
 
-    hits.forEach(({ entry, index }) => {
+    hits.forEach(({ entry, number }) => {
       const row = document.createElement('div');
       row.className = 'find-row';
 
       const num = document.createElement('div');
       num.className = 'find-num';
-      num.textContent = (index + 1) + '.';
+      num.textContent = number + '.';
 
       const txt = document.createElement('div');
       txt.className = 'find-sentences';
@@ -2508,14 +2510,14 @@ Fordítandó eredeti szöveg:
         if (memoryTrashMode) return;
 
         const currentNums = (entry.linkedWordIds || [])
-          .map(id => visible.findIndex(v => v.id === id))
+          .map(id => linkableEntries.findIndex(v => v.id === id))
           .filter(i => i >= 0).map(i => i + 1);
         const answer = await askForLinks(currentNums.join(', '));
         if(answer === null) return;
         const ids = [];
         answer.split(/[,\s]+/).filter(Boolean).forEach(part => {
           const n = parseInt(part, 10);
-          const target = (!isNaN(n) && n >= 1 && n <= visible.length) ? visible[n - 1] : null;
+          const target = (!isNaN(n) && n >= 1 && n <= linkableEntries.length) ? linkableEntries[n - 1] : null;
           if(target && target.id !== entry.id && !ids.includes(target.id)) ids.push(target.id);
         });
         entry.linkedWordIds = ids;
@@ -2656,13 +2658,14 @@ Fordítandó eredeti szöveg:
       memoryTable.classList.remove('trash-mode');
     }
 
-    const rows = visible.map((entry, index) => ({ entry, index }));
+    let memoryWordNumber = 0;
+    const rows = visible.map(entry => ({ entry, number:entry.isNote ? null : ++memoryWordNumber }));
     memoryEmptyState.textContent = 'Még nincs semmi a memóriában ezen a nyelven.';
     memoryEmptyState.style.display = rows.length ? 'none' : 'block';
     memoryAddRowBtn.style.display = (findMode && findTerm) ? 'none' : '';
 
     let stopAfterThisRow = false;
-    rows.forEach(({ entry, index }) => {
+    rows.forEach(({ entry, number }) => {
       if(stopAfterThisRow) return;
 
       if(entry.isNote){
@@ -2699,13 +2702,13 @@ Fordítandó eredeti szöveg:
       const tr = document.createElement('tr');
       tr.dataset.id = entry.id;
       if(memorySelectedIds.has(entry.id)) tr.classList.add('selected');
-      if((index + 1) % 20 === 0 && index !== visible.length - 1){
+      if(number % 20 === 0 && number !== memoryWordNumber){
         tr.classList.add('block-end');
       }
 
       const numTd = document.createElement('td');
       numTd.className = 'memory-num-cell';
-      numTd.textContent = String(index + 1);
+      numTd.textContent = String(number);
 
       const huTd = document.createElement('td');
       huTd.className = 'mem-edit';
