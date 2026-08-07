@@ -5434,7 +5434,17 @@ Fordítandó eredeti szöveg:
   ebookExitToSettings=function(){ ebookStopSpeaking(); ebookReaderView.classList.remove('show'); ebookReaderView.style.transform=''; ebookReaderView.style.opacity=''; ebookSettingsView.classList.remove('hide'); ebookClearTranslation(); ebookRefreshLibrary(); };
   const ebookOriginalRendered=ebookOnContentRendered;
   ebookOnContentRendered=function(contents){ ebookOriginalRendered(contents); ebookUpdateMissingTranslation(); const doc=contents.document; let x=0,y=0; doc.addEventListener('click',e=>{if(!e.target.closest('.ebook-word')){ const speaking=ebookPlaying || (window.speechSynthesis && window.speechSynthesis.speaking); if(speaking){ try{window.speechSynthesis.cancel();}catch(err){} ebookPlaying=false; ebookPlayBtn.textContent='▶'; return; } ebookClearTranslation(); doc.querySelectorAll('.ebook-word-active,.ebook-sentence-active').forEach(el=>el.classList.remove('ebook-word-active','ebook-sentence-active')); ebookCurrentWord=null; ebookCurrentSentenceIdx=null; }}); doc.addEventListener('touchstart',e=>{x=e.touches[0].clientX;y=e.touches[0].clientY;},{passive:true}); doc.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x,dy=e.changedTouches[0].clientY-y;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)){try{dx<0?ebookRendition.next():ebookRendition.prev();}catch(err){}}else if(Math.abs(dy)>70&&Math.abs(dy)>Math.abs(dx)){ebookExitToSettings();}},{passive:true}); };
-  ebookSaveBtn.addEventListener('click',()=>{ if(ebookSelectionIsSentence && ebookCurrentSentenceIdx!=null) ebookSaveEntry({fxSentence:ebookChapterSentences[ebookCurrentSentenceIdx]}); else if(ebookCurrentWord) ebookSaveEntry({foreign:ebookCurrentWord}); else return; ebookSaveBtn.classList.add('saved');setTimeout(()=>ebookSaveBtn.classList.remove('saved'),430); });
+  ebookSaveBtn.addEventListener('click',async()=>{
+    const isSentence=ebookSelectionIsSentence&&ebookCurrentSentenceIdx!=null;
+    const source=isSentence?ebookChapterSentences[ebookCurrentSentenceIdx]:ebookCurrentWord;
+    if(!source)return;
+    // Ha a felhasználó rögtön ment, várjuk meg a fordítást is.
+    await ebookShowTranslation(source,isSentence);
+    const translation=(ebookBarTranslation.textContent||'').trim();
+    const usable=translation&&translation!=='(nincs fordítás)';
+    ebookSaveEntry(isSentence?{fxSentence:source,huSentence:usable?translation:''}:{foreign:source,hu:usable?translation:''});
+    ebookSaveBtn.classList.add('saved');setTimeout(()=>ebookSaveBtn.classList.remove('saved'),430);
+  });
   ebookViewer.addEventListener('click',()=>{ try{window.speechSynthesis.cancel();}catch(e){} ebookPlaying=false; ebookPlayBtn.textContent='▶'; });
   ebookBookmarkBtn.addEventListener('click',ebookSetBookmark);
   ebookMenuBtn.addEventListener('click',()=>{ebookSettingsMenu.classList.toggle('show'); ebookSettingsMenu.setAttribute('aria-hidden',String(!ebookSettingsMenu.classList.contains('show')));});
