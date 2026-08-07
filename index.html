@@ -2635,9 +2635,7 @@ Fordítandó eredeti szöveg:
     memoryBookView.innerHTML='<div class="empty-state">Könyvek betöltése…</div>';
     let books=[]; try{books=await ebookLibraryList();}catch(e){}
     if(!memoryWordLibraryMode || memoryWordBookId) return;
-    const generalCount=memoryEntries.filter(e=>e.lang===selectedLang&&!e.bookId).length;
-    memoryBookView.innerHTML='<div class="memory-library-title">Szavak és mondatok</div><div class="memory-book-grid"><button class="memory-chapter-card" data-memory-general="1">Általános memória<small>'+generalCount+' elem</small></button></div>'+(books.length?'<div class="ebook-library">'+books.map(book=>'<button class="ebook-card" type="button" data-memory-word-book="'+escapeHtml(book.id)+'"><span class="ebook-card-cover">'+(book.meta&&book.meta.cover?'<img alt="Borító" src="'+ebookEscAttr(book.meta.cover)+'">':'<span class="ebook-card-fallback">'+escapeHtml(ebookTitle(book.meta||{}))+'</span>')+'</span></button>').join('')+'</div>':'<div class="empty-state">Még nincs importált könyv.</div>');
-    memoryBookView.querySelector('[data-memory-general]').addEventListener('click',()=>{memoryWordBookId='__general__';renderMemoryTable();});
+    memoryBookView.innerHTML='<div class="memory-library-title">Szavak és mondatok</div>'+(books.length?'<div class="ebook-library">'+books.map(book=>'<button class="ebook-card" type="button" data-memory-word-book="'+escapeHtml(book.id)+'"><span class="ebook-card-cover">'+(book.meta&&book.meta.cover?'<img alt="Borító" src="'+ebookEscAttr(book.meta.cover)+'">':'<span class="ebook-card-fallback">'+escapeHtml(ebookTitle(book.meta||{}))+'</span>')+'</span></button>').join('')+'</div>':'<div class="empty-state">Még nincs importált könyv.</div>');
     memoryBookView.querySelectorAll('[data-memory-word-book]').forEach(btn=>btn.addEventListener('click',()=>{memoryWordBookId=btn.dataset.memoryWordBook;renderMemoryTable();}));
   }
   function renderMemoryTable(){
