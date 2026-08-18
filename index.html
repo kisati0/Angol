@@ -837,6 +837,8 @@
     background: var(--bg);
     z-index: 100;
     overflow-y: auto;
+    touch-action: none;
+    overscroll-behavior: none;
   }
   .practice-overlay.show{ display: block; }
   .practice-panel{
@@ -847,6 +849,7 @@
     max-width: 460px;
     margin: 0 auto;
     min-height: 100%;
+    will-change: transform, opacity;
   }
   .practice-top-row{
     display: flex;
@@ -2196,6 +2199,7 @@
   const practiceBtn = document.getElementById('practiceBtn');
   const translateBtn = document.getElementById('translateBtn');
   const practiceOverlay = document.getElementById('practiceOverlay');
+  const practicePanel = document.querySelector('.practice-panel');
   const practiceCloseBtn = document.getElementById('practiceCloseBtn');
   const practiceDrillView = document.getElementById('practiceDrillView');
   const practiceDirectionBtn = document.getElementById('practiceDirectionBtn');
@@ -4673,12 +4677,18 @@ Fordítandó eredeti szöveg:
     practiceGroupIndex = Math.floor(startIndex / 5);
     practiceWordIndex = startIndex % 5;
     practiceDrillView.style.display = 'block';
+    practicePanel.style.transition = '';
+    practicePanel.style.transform = '';
+    practicePanel.style.opacity = '';
     practiceOverlay.classList.add('show');
     updatePracticeDirectionLabel();
     renderPracticeWord();
   }
   function closePracticeOverlay(){
     practiceOverlay.classList.remove('show');
+    practicePanel.style.transition = '';
+    practicePanel.style.transform = '';
+    practicePanel.style.opacity = '';
     if(practiceRecognitionListening) try{ practiceRecognition.stop(); }catch(e){}
     reshuffleAreaTheme('main');
   }
@@ -4742,6 +4752,12 @@ Fordítandó eredeti szöveg:
     renderPracticeWord();
   }
 
+  function goToPreviousPracticeWord(){
+    const length = practiceGroupLength || 1;
+    practiceWordIndex = (practiceWordIndex - 1 + length) % length;
+    renderPracticeWord();
+  }
+
   function speakCurrentPracticeItem(){
     if(!practiceCurrentCorrect) return;
     const langInfo = LANGS[practiceCurrentLang] || LANGS.en;
@@ -4765,15 +4781,127 @@ Fordítandó eredeti szöveg:
     // Megakadályozza, hogy a fókusz (és vele a mobil billentyűzet) eltűnjön.
     e.preventDefault();
   });
-  practiceOverlay.addEventListener('touchstart', (e) => {
-    if(isPracticeInteractiveTarget(e.target)) return;
+  let practiceDragging = false;
+  let practiceGestureMoved = false;
+  let practiceGestureAxis = null;
+  let practiceGestureStartX = 0;
+  let practiceGestureStartY = 0;
+  let practiceGestureAnimating = false;
+  let practiceIgnoreClick = false;
+
+  function practiceSnapBack(){
+    practicePanel.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+    practicePanel.style.transform = 'translate(0,0)';
+    practicePanel.style.opacity = '1';
+  }
+
+  function practiceSlideTo(dir){
+    if(practiceGestureAnimating) return;
+    practiceGestureAnimating = true;
+    const distance = Math.max(window.innerWidth, 480) + 60;
+    practicePanel.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+    practicePanel.style.transform = 'translateX(' + (dir * -distance) + 'px)';
+    practicePanel.style.opacity = '0';
+    setTimeout(() => {
+      if(dir > 0) goToNextPracticeWord();
+      else goToPreviousPracticeWord();
+      practicePanel.style.transition = 'none';
+      practicePanel.style.transform = 'translateX(' + (dir * distance) + 'px)';
+      practicePanel.style.opacity = '0';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        practicePanel.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+        practicePanel.style.transform = 'translateX(0)';
+        practicePanel.style.opacity = '1';
+        setTimeout(() => { practiceGestureAnimating = false; }, 260);
+      }));
+    }, 200);
+  }
+
+  function practiceDismiss(dy){
+    if(practiceGestureAnimating) return;
+    practiceGestureAnimating = true;
+    const distance = Math.max(window.innerHeight, 480) + 60;
+    practicePanel.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+    practicePanel.style.transform = 'translateY(' + (dy < 0 ? -distance : distance) + 'px)';
+    practicePanel.style.opacity = '0';
+    setTimeout(() => {
+      closePracticeOverlay();
+      practiceGestureAnimating = false;
+    }, 200);
+  }
+
+  practiceOverlay.addEventListener('pointerdown', (e) => {
+    if(practiceGestureAnimating || !e.isPrimary) return;
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    practiceDragging = true;
+    practiceGestureMoved = false;
+    practiceGestureAxis = null;
+    practiceGestureStartX = e.clientX;
+    practiceGestureStartY = e.clientY;
+    if(practiceOverlay.setPointerCapture) practiceOverlay.setPointerCapture(e.pointerId);
+    practicePanel.style.transition = 'none';
+  });
+
+  practiceOverlay.addEventListener('pointermove', (e) => {
+    if(!practiceDragging) return;
+    if(e.pointerType === 'mouse' && e.buttons !== 1) return;
+    const dx = e.clientX - practiceGestureStartX;
+    const dy = e.clientY - practiceGestureStartY;
+    if(!practiceGestureAxis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)){
+      practiceGestureAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    if(!practiceGestureAxis) return;
+    practiceGestureMoved = true;
     if(e.cancelable) e.preventDefault();
-  }, { passive: false });
-  practiceOverlay.addEventListener('touchend', (e) => {
-    if(isPracticeInteractiveTarget(e.target)) return;
-    if(e.cancelable) e.preventDefault();
-    speakCurrentPracticeItem();
-  }, { passive: false });
+    if(practiceGestureAxis === 'x'){
+      practicePanel.style.transform = 'translateX(' + dx + 'px)';
+      practicePanel.style.opacity = String(Math.max(0.35, 1 - Math.abs(dx) / 300));
+    } else {
+      practicePanel.style.transform = 'translateY(' + dy + 'px)';
+      practicePanel.style.opacity = String(Math.max(0.35, 1 - Math.abs(dy) / 300));
+    }
+  });
+
+  function practiceEndGesture(e){
+    if(!practiceDragging) return;
+    practiceDragging = false;
+    if(practiceOverlay.hasPointerCapture && practiceOverlay.hasPointerCapture(e.pointerId)){
+      practiceOverlay.releasePointerCapture(e.pointerId);
+    }
+    const dx = e.clientX - practiceGestureStartX;
+    const dy = e.clientY - practiceGestureStartY;
+    if(practiceGestureMoved){
+      practiceIgnoreClick = true;
+      setTimeout(() => { practiceIgnoreClick = false; }, 350);
+    }
+    if(practiceGestureAxis === 'x' && Math.abs(dx) > 60){
+      practiceSlideTo(dx < 0 ? 1 : -1);
+    } else if(practiceGestureAxis === 'y' && Math.abs(dy) > 60){
+      practiceDismiss(dy);
+    } else if(practiceGestureMoved){
+      practiceSnapBack();
+    }
+  }
+
+  practiceOverlay.addEventListener('pointerup', practiceEndGesture);
+  practiceOverlay.addEventListener('pointercancel', (e) => {
+    if(!practiceDragging) return;
+    practiceDragging = false;
+    if(practiceOverlay.hasPointerCapture && practiceOverlay.hasPointerCapture(e.pointerId)){
+      practiceOverlay.releasePointerCapture(e.pointerId);
+    }
+    if(practiceGestureMoved){
+      practiceIgnoreClick = true;
+      setTimeout(() => { practiceIgnoreClick = false; }, 350);
+    }
+    practiceSnapBack();
+  });
+
+  practiceOverlay.addEventListener('click', (e) => {
+    if(!practiceIgnoreClick) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
 
   practiceBtn.addEventListener('click', openPractice);
   practiceCloseBtn.addEventListener('click', closePracticeOverlay);
@@ -4792,6 +4920,7 @@ Fordítandó eredeti szöveg:
     }, { passive: false });
     el.addEventListener('touchend', (e) => {
       if(e.cancelable) e.preventDefault();
+      if(practiceGestureMoved) return;
       el.click();
     }, { passive: false });
   });
