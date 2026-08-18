@@ -3098,7 +3098,9 @@ Fordítandó eredeti szöveg:
       const linkNums = (row[4] || '').trim();
       if(!hu && !foreign && !huSentence && !fxSentence) continue;
       let existing = null;
-      if(hu){
+      if(hu && foreign){
+        existing = memoryEntries.find(e => e.lang === selectedLang && (e.bookId||'')===targetBookId && norm(e.hu) === norm(hu) && norm(e.foreign) === norm(foreign));
+      } else if(hu){
         existing = memoryEntries.find(e => e.lang === selectedLang && (e.bookId||'')===targetBookId && norm(e.hu) === norm(hu));
       } else if(foreign){
         existing = memoryEntries.find(e => e.lang === selectedLang && (e.bookId||'')===targetBookId && norm(e.foreign) === norm(foreign));
