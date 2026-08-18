@@ -2560,6 +2560,9 @@ Fordítandó eredeti szöveg:
   });
 
   let memorySelectedIds = new Set();
+  let memorySelectAnchorId = null; // az utoljára (egyszeresen) kattintott sor, a tartomány-kijelöléshez
+  let memoryClickTimer = null;     // dupla kattintás felismeréséhez
+  let memoryPendingClickId = null; // dupla kattintás felismeréséhez
 
   // Kuka módban a táblázat bármelyik sor-részére érkező kattintást itt kezeljük.
   memoryTableBody.addEventListener('click', (event) => {
@@ -2660,6 +2663,7 @@ Fordítandó eredeti szöveg:
 
     let memoryWordNumber = 0;
     const rows = visible.map(entry => ({ entry, number:entry.isNote ? null : ++memoryWordNumber }));
+    const nonNoteEntries = rows.filter(r => !r.entry.isNote).map(r => r.entry);
     memoryEmptyState.textContent = 'Még nincs semmi a memóriában ezen a nyelven.';
     memoryEmptyState.style.display = rows.length ? 'none' : 'block';
     memoryAddRowBtn.style.display = (findMode && findTerm) ? 'none' : '';
@@ -2679,8 +2683,8 @@ Fordítandó eredeti szöveg:
         const noteTd = document.createElement('td');
         noteTd.className = 'mem-edit memory-note-text';
         noteTd.colSpan = 5;
-        // kuka módban ne legyen szerkeszthető
-        noteTd.contentEditable = (noteInsertMode && !trashMode) ? 'false' : (!trashMode ? 'true' : 'false');
+        // kuka módban és kijelölés módban ne legyen szerkeszthető
+        noteTd.contentEditable = (!trashMode && !noteInsertMode && !memorySelectMode) ? 'true' : 'false';
         noteTd.textContent = entry.note || '';
         // JAVÍTÁS: input + blur mentés
         const saveNote = function() {
@@ -2692,6 +2696,29 @@ Fordítandó eredeti szöveg:
         noteTd.addEventListener('input', saveNote);
         noteTd.addEventListener('blur', saveNote);
         noteTr.appendChild(noteTd);
+
+        // Kijelölés módban: a megjegyzés sorra kattintva jelölődjön ki (vagy szűnjön meg
+        // a kijelölés) az utána következő sorok blokkja, egészen a következő
+        // megjegyzés sorig (azt már nem beleértve).
+        if (memorySelectMode) {
+          noteTr.style.cursor = 'pointer';
+          noteTr.addEventListener('click', () => {
+            const startIdx = rows.findIndex(r => r.entry.id === entry.id);
+            if (startIdx < 0) return;
+            const blockIds = [];
+            for (let i = startIdx + 1; i < rows.length; i++) {
+              if (rows[i].entry.isNote) break;
+              blockIds.push(rows[i].entry.id);
+            }
+            if (!blockIds.length) return;
+            const allSelected = blockIds.every(id => memorySelectedIds.has(id));
+            if (allSelected) blockIds.forEach(id => memorySelectedIds.delete(id));
+            else blockIds.forEach(id => memorySelectedIds.add(id));
+            memorySelectAnchorId = blockIds[blockIds.length - 1];
+            renderMemoryTable();
+          });
+        }
+
         memoryTableBody.appendChild(noteTr);
         return;
       }
@@ -2807,13 +2834,48 @@ Fordítandó eredeti szöveg:
           return;
         }
         if (!memorySelectMode) return;
-        if (memorySelectedIds.has(entry.id)) {
-          memorySelectedIds.delete(entry.id);
-          tr.classList.remove('selected');
-        } else {
-          memorySelectedIds.add(entry.id);
-          tr.classList.add('selected');
+
+        // Ha ez a második kattintás ugyanarra a sorra rövid időn belül (dupla
+        // kattintás), akkor a korábbi kijelölési ponttól (memorySelectAnchorId,
+        // ami egy MÁSIK, korábban egyszer megkattintott sor) idáig terjedő teljes
+        // tartományt jelöljük ki, önmagukat is beleértve. Az első kattintás
+        // hatását (ami az idáig tartó tartományt "elrontaná" azzal, hogy azonnal
+        // idekattintásra állítaná az anchort) egy rövid késleltetéssel védjük ki.
+        if (memoryPendingClickId === entry.id && memoryClickTimer) {
+          clearTimeout(memoryClickTimer);
+          memoryClickTimer = null;
+          memoryPendingClickId = null;
+          const ids = nonNoteEntries.map(e => e.id);
+          const i2 = ids.indexOf(entry.id);
+          const i1 = (memorySelectAnchorId && memorySelectAnchorId !== entry.id) ? ids.indexOf(memorySelectAnchorId) : -1;
+          if (i1 >= 0 && i2 >= 0) {
+            const from = Math.min(i1, i2), to = Math.max(i1, i2);
+            for (let i = from; i <= to; i++) memorySelectedIds.add(ids[i]);
+          } else {
+            memorySelectedIds.add(entry.id);
+          }
+          memorySelectAnchorId = entry.id;
+          renderMemoryTable();
+          return;
         }
+
+        // Első kattintás: rövid ideig várunk, hátha ez lesz egy dupla kattintás
+        // első fele — csak ha nem érkezik második kattintás, hajtjuk végre a
+        // normál egysoros ki/be jelölést.
+        memoryPendingClickId = entry.id;
+        clearTimeout(memoryClickTimer);
+        memoryClickTimer = setTimeout(() => {
+          memoryClickTimer = null;
+          memoryPendingClickId = null;
+          memorySelectAnchorId = entry.id;
+          if (memorySelectedIds.has(entry.id)) {
+            memorySelectedIds.delete(entry.id);
+            tr.classList.remove('selected');
+          } else {
+            memorySelectedIds.add(entry.id);
+            tr.classList.add('selected');
+          }
+        }, 300);
       });
 
       tr.appendChild(numTd);
@@ -2840,14 +2902,14 @@ Fordítandó eredeti szöveg:
   memoryAddBtn.addEventListener('click', () => {
     if(memoryBookMode){
       if(!memoryBookId){ showMemoryNote('Előbb válaszd ki a könyv borítóját.'); return; }
-      if(!memorySelectMode){ memorySelectMode=true; memorySelectedIds.clear(); memoryAddBtn.classList.add('active'); memoryAllBtn.style.display='flex'; renderMemoryBookView(); return; }
+      if(!memorySelectMode){ memorySelectMode=true; memorySelectedIds.clear(); memorySelectAnchorId = null; clearTimeout(memoryClickTimer); memoryClickTimer = null; memoryPendingClickId = null; memoryAddBtn.classList.add('active'); memoryAllBtn.style.display='flex'; renderMemoryBookView(); return; }
       const chapters=currentBookTranslations(); let added=0;
       [...memorySelectedIds].filter(id=>id.startsWith('chapter:')).forEach(id=>{ const ch=id.slice(8); (chapters[ch]||[]).forEach(r=>{ if(!memoryEntries.some(e=>e.lang===selectedLang&&norm(e.fxSentence)===norm(r.foreign))){ memoryEntries.push({id:makeId(),hu:'',foreign:'',huSentence:r.hu,fxSentence:r.foreign,lang:selectedLang,updatedAt:Date.now()});added++; } }); });
-      if(added)saveMemoryToDisk(); memorySelectMode=false; memorySelectedIds.clear(); memoryAddBtn.classList.remove('active'); memoryAllBtn.style.display='none'; renderMemoryBookView(); return;
+      if(added)saveMemoryToDisk(); memorySelectMode=false; memorySelectedIds.clear(); memorySelectAnchorId = null; clearTimeout(memoryClickTimer); memoryClickTimer = null; memoryPendingClickId = null; memoryAddBtn.classList.remove('active'); memoryAllBtn.style.display='none'; renderMemoryBookView(); return;
     }
     if(!memorySelectMode){
       memorySelectMode = true;
-      memorySelectedIds.clear();
+      memorySelectedIds.clear(); memorySelectAnchorId = null; clearTimeout(memoryClickTimer); memoryClickTimer = null; memoryPendingClickId = null;
       memoryAddBtn.classList.add('active');
       memoryAllBtn.style.display = 'flex';
       renderMemoryTable();
@@ -2872,7 +2934,7 @@ Fordítandó eredeti szöveg:
       renderHistory();
     }
     memorySelectMode = false;
-    memorySelectedIds.clear();
+    memorySelectedIds.clear(); memorySelectAnchorId = null; clearTimeout(memoryClickTimer); memoryClickTimer = null; memoryPendingClickId = null;
     memoryAddBtn.classList.remove('active');
     memoryAllBtn.style.display = 'none';
     renderMemoryTable();
@@ -2908,7 +2970,7 @@ Fordítandó eredeti szöveg:
       memoryEntries = memoryEntries.filter(e => !memorySelectedIds.has(e.id));
       saveMemoryToDisk();
       memorySelectMode = false;
-      memorySelectedIds.clear();
+      memorySelectedIds.clear(); memorySelectAnchorId = null; clearTimeout(memoryClickTimer); memoryClickTimer = null; memoryPendingClickId = null;
       memoryAddBtn.classList.remove('active');
       memoryAllBtn.style.display = 'none';
       renderMemoryTable();
@@ -2920,7 +2982,7 @@ Fordítandó eredeti szöveg:
     if (memoryTrashMode) {
       if (memorySelectMode) {
         memorySelectMode = false;
-        memorySelectedIds.clear();
+        memorySelectedIds.clear(); memorySelectAnchorId = null; clearTimeout(memoryClickTimer); memoryClickTimer = null; memoryPendingClickId = null;
         memoryAddBtn.classList.remove('active');
         memoryAllBtn.style.display = 'none';
       }
@@ -2952,7 +3014,7 @@ Fordítandó eredeti szöveg:
     memoryBookBtn.classList.remove('active');
     memoryOverlay.classList.remove('book-mode');
     memorySelectMode = false;
-    memorySelectedIds.clear();
+    memorySelectedIds.clear(); memorySelectAnchorId = null; clearTimeout(memoryClickTimer); memoryClickTimer = null; memoryPendingClickId = null;
     memoryAddBtn.classList.remove('active');
     memoryAllBtn.style.display = 'none';
     memoryTrashMode = false;
