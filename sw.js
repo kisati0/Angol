@@ -1,7 +1,7 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v39 - E-könyv olvasó (epub, szó/mondat mentés, könyvjelző)
+// Verzió: v63 - mondatcsomag az Effekt nézetben és helyes válasz kijelzése
 
-const CACHE = 'szomondo-1-v60';
+const CACHE = 'szomondo-1-v63';
 const ASSETS = [
   './',
   './index.html',

@@ -201,6 +201,19 @@
     border-color: var(--neutral-border);
     color: var(--ink-soft);
   }
+  .profile-item .sentence-pack-btn {
+    width: 34px;
+    padding: 4px 6px;
+    font-size: 15px;
+    opacity: 0.58;
+  }
+  .profile-item .sentence-pack-btn.active {
+    opacity: 1;
+    background: var(--paprika);
+    border-color: var(--paprika);
+    color: #fff;
+    box-shadow: 0 0 0 2px rgba(var(--paprika-rgb),0.16);
+  }
 
   .mic-row{
     display: flex;
@@ -976,6 +989,7 @@
   }
   .practice-feedback.correct{ color: var(--green); }
   .practice-feedback.incorrect{ color: var(--red); }
+  .practice-feedback.correct-answer{ color: #fff; }
   .visual-effect-overlay{
     display: none;
     position: fixed;
@@ -1902,7 +1916,7 @@
         <button class="icon-btn memory-book-back" id="memoryWordsBackBtn" style="display:none;">← Könyvek</button>
         <div class="memory-library-title" id="memoryContentTitle" style="display:none;"></div>
         <table id="memoryTable">
-          <thead><tr><th>#</th><th>Magyar szó</th><th id="memoryColHead">Idegen szó</th><th>Magyar mondat</th><th id="memoryColHeadSentence">Idegen mondat</th><th>🔗</th></tr></thead>
+          <thead><tr><th>#</th><th id="memoryHuColHead">Magyar szó</th><th id="memoryColHead">Idegen szó</th><th>Magyar mondat</th><th id="memoryColHeadSentence">Idegen mondat</th><th>🔗</th></tr></thead>
           <tbody id="memoryTableBody"></tbody>
         </table>
         <div id="memoryBookView" style="display:none;"></div>
@@ -2064,6 +2078,24 @@
       this.saveProfiles();
       renderProfileList();
       return true;
+    },
+
+    isSentencePackMode(id = this.activeProfileId) {
+      const profile = this.profiles.find(p => p.id === id);
+      return !!(profile && profile.sentencePackMode);
+    },
+
+    toggleSentencePackMode(id) {
+      const profile = this.ensureProfile(id);
+      profile.sentencePackMode = !profile.sentencePackMode;
+      this.saveProfiles();
+      if (id === this.activeProfileId) {
+        renderHistory();
+        renderMemoryTable();
+        updatePlayButtonLabels();
+      }
+      renderProfileList();
+      return profile.sentencePackMode;
     }
   };
 
@@ -2099,6 +2131,18 @@
       nameSpan.className = 'profile-name';
       nameSpan.textContent = profile.name;
 
+      const sentencePackBtn = document.createElement('button');
+      const sentencePackEnabled = !!profile.sentencePackMode;
+      sentencePackBtn.className = 'icon-btn sentence-pack-btn' + (sentencePackEnabled ? ' active' : '');
+      sentencePackBtn.textContent = '🧩';
+      sentencePackBtn.title = sentencePackEnabled ? 'Mondatcsomag mód: bekapcsolva' : 'Mondatcsomag mód: kikapcsolva';
+      sentencePackBtn.setAttribute('aria-label', sentencePackBtn.title);
+      sentencePackBtn.setAttribute('aria-pressed', sentencePackEnabled ? 'true' : 'false');
+      sentencePackBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profilManager.toggleSentencePackMode(id);
+      });
+
       const renameBtn = document.createElement('button');
       renameBtn.className = 'icon-btn';
       renameBtn.textContent = '✏️';
@@ -2114,6 +2158,7 @@
 
       item.appendChild(dot);
       item.appendChild(nameSpan);
+      item.appendChild(sentencePackBtn);
       item.appendChild(renameBtn);
 
       profileListContainer.appendChild(item);
@@ -2176,6 +2221,7 @@
   const memoryBookBtn = document.getElementById('memoryBookBtn');
   const memoryRulesBtn = document.getElementById('memoryRulesBtn');
   const memoryBookView = document.getElementById('memoryBookView');
+  const memoryHuColHead = document.getElementById('memoryHuColHead');
   const memoryColHead = document.getElementById('memoryColHead');
   const memoryColHeadSentence = document.getElementById('memoryColHeadSentence');
   const memoryImportBtn = document.getElementById('memoryImportBtn');
@@ -2438,6 +2484,36 @@ Fordítandó eredeti szöveg:
   function setHu(e, value){ if(e.swapped){ e.foreign = value; } else { e.hu = value; } }
   function setFx(e, value){ if(e.swapped){ e.hu = value; } else { e.foreign = value; } }
 
+  function splitSentencePackWords(value){
+    return String(value || '').split('|').map(word => word.trim()).filter(Boolean);
+  }
+  function getSentencePackWordLists(entry){
+    const huRaw = entry && entry.huWords != null ? entry.huWords : (entry ? entry.hu : '');
+    const fxRaw = entry && entry.foreignWords != null ? entry.foreignWords : (entry ? entry.foreign : '');
+    return { huWords: splitSentencePackWords(huRaw), fxWords: splitSentencePackWords(fxRaw) };
+  }
+  function buildSentencePackItems(entry){
+    if(!entry || !entry.isSentencePack) return [];
+    const lists = getSentencePackWordLists(entry);
+    const count = Math.min(lists.huWords.length, lists.fxWords.length);
+    const cards = [];
+    for(let i = 0; i < count; i++){
+      cards.push({
+        hu: lists.huWords[i],
+        fx: lists.fxWords[i],
+        foreign: lists.fxWords[i],
+        lang: entry.lang,
+        itemType: 'word'
+      });
+    }
+    const huSentence = String(entry.huSentence || (entry.huWords != null ? entry.hu : '') || '').trim();
+    const fxSentence = String(entry.fxSentence || (entry.foreignWords != null ? entry.foreign : '') || '').trim();
+    if(huSentence && fxSentence){
+      cards.push({ hu: huSentence, fx: fxSentence, foreign: fxSentence, lang: entry.lang, itemType: 'sentence' });
+    }
+    return cards;
+  }
+
   function getVisibleEntries(){
     return entries.filter(e => e.lang === selectedLang);
   }
@@ -2455,9 +2531,11 @@ Fordítandó eredeti szöveg:
 
   function updatePlayButtonLabels(){
     const tag = LANGS[selectedLang].tag;
+    const sentencePackMode = profilManager.isSentencePackMode();
     if(playingMode !== 'fx') playFxBtn.textContent = '▶ ' + tag;
     memoryLangTag.textContent = tag;
-    memoryColHead.textContent = tag + ' szó';
+    memoryHuColHead.textContent = sentencePackMode ? 'Magyar szavak' : 'Magyar szó';
+    memoryColHead.textContent = tag + (sentencePackMode ? ' szavak' : ' szó');
     memoryColHeadSentence.textContent = tag + ' mondat';
   }
 
@@ -2921,6 +2999,25 @@ Fordítandó eredeti szöveg:
     }
     const toAdd = memoryEntries.filter(e => memorySelectedIds.has(e.id));
     toAdd.forEach(me => {
+      if(me.isSentencePack){
+        if(!me.huSentence || !me.fxSentence) return;
+        const packData = {
+          hu: me.huSentence,
+          foreign: me.fxSentence,
+          huSentence: me.huSentence,
+          fxSentence: me.fxSentence,
+          huWords: me.hu || '',
+          foreignWords: me.foreign || '',
+          isSentencePack: true,
+          lang: me.lang,
+          updatedAt: Date.now(),
+          sourceMemoryId: me.id
+        };
+        const existingPack = entries.find(e => e.isSentencePack && e.sourceMemoryId === me.id);
+        if(existingPack) Object.assign(existingPack, packData);
+        else entries.push({ id: makeId(), ...packData });
+        return;
+      }
       const hu = (me.hu && me.hu.trim()) ? me.hu : me.huSentence;
       const foreign = (me.foreign && me.foreign.trim()) ? me.foreign : me.fxSentence;
       if(!hu || !foreign) return;
@@ -3061,6 +3158,26 @@ Fordítandó eredeti szöveg:
       if(!memoryBookId){ showMemoryNote('Előbb válaszd ki a könyv borítóját.'); return; } const bookId=currentTranslationBookId(), chapters=currentBookTranslations(); const rows=['fejezet;idegen_mondat;magyar_mondat;nyelv']; Object.keys(chapters).forEach(ch=>chapters[ch].forEach(r=>rows.push([ch,r.foreign,r.hu,selectedLang].map(v=>csvEscape(v,';')).join(';')))); const blob=new Blob([rows.join('\r\n')],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='konyvforditas-'+bookId+'.csv';a.click();URL.revokeObjectURL(url);return;
     }
     const visible = getVisibleMemoryEntries();
+    if(profilManager.isSentencePackMode()){
+      const rows = visible
+        .filter(e => !e.isNote && e.isSentencePack)
+        .map(e => [e.hu || '', e.foreign || '', e.huSentence || '', e.fxSentence || '']
+          .map(v => csvEscape(v, ','))
+          .join(','));
+      if(!rows.length){ showMemoryNote('Nincs exportálható mondatcsomag.'); return; }
+      let filename = prompt('Fájlnév:', 'mondatcsomag-' + selectedLang);
+      if(filename === null) return;
+      filename = filename.trim() || ('mondatcsomag-' + selectedLang);
+      if(!/\.csv$/i.test(filename)) filename += '.csv';
+      const blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
     const header = ['Magyar szó','Idegen szó','Magyar mondat','Idegen mondat','Kapcsolt sorok'];
     const rows = [header.map(v => csvEscape(v, ';')).join(';')].concat(visible.map(e => {
       const nums = (e.linkedWordIds || [])
@@ -3089,8 +3206,46 @@ Fordítandó eredeti szöveg:
     const lines = text.split(/\r?\n/).filter(l => l.trim().length);
     const delim = detectDelimiter(lines);
     let startIdx = 0;
-    if(lines.length && /^magyar\s*[;,]/i.test(lines[0])) startIdx = 1;
+    if(lines.length){
+      const firstRow = parseCsvLine(lines[0], delim);
+      if(/^magyar(?:\s+szó|\s+szavak)?$/i.test(String(firstRow[0] || '').trim())) startIdx = 1;
+    }
     const targetBookId=(memoryWordLibraryMode&&memoryWordBookId&&memoryWordBookId!=='__general__')?memoryWordBookId:'';
+    if(profilManager.isSentencePackMode()){
+      let imported = 0;
+      let invalid = 0;
+      for(let i = startIdx; i < lines.length; i++){
+        const row = parseCsvLine(lines[i], delim);
+        if(row.length < 4){ invalid++; continue; }
+        const huWordsText = (row[0] || '').trim();
+        const foreignWordsText = (row[1] || '').trim();
+        const huSentence = (row[2] || '').trim();
+        const fxSentence = (row[3] || '').trim();
+        if(!huSentence || !fxSentence){ invalid++; continue; }
+        const huWords = splitSentencePackWords(huWordsText);
+        const fxWords = splitSentencePackWords(foreignWordsText);
+        if(huWords.length !== fxWords.length){ invalid++; continue; }
+        memoryEntries.push({
+          id: makeId(),
+          isSentencePack: true,
+          hu: huWords.join(' | '),
+          foreign: fxWords.join(' | '),
+          huSentence,
+          fxSentence,
+          lang: selectedLang,
+          bookId: targetBookId,
+          updatedAt: Date.now()
+        });
+        imported++;
+      }
+      if(imported) saveMemoryToDisk();
+      renderMemoryTable();
+      const note = imported
+        ? `Mondatcsomag importálva: ${imported} mondat.` + (invalid ? ` Hibás vagy hiányos sor: ${invalid}.` : '')
+        : 'Nem találtam importálható mondatcsomagot.';
+      showMemoryNote(note);
+      return;
+    }
     const pendingLinks = [];
     for(let i = startIdx; i < lines.length; i++){
       const row = parseCsvLine(lines[i], delim);
@@ -3145,10 +3300,13 @@ Fordítandó eredeti szöveg:
 
   function renderHistory(){
     const visible = getVisibleEntries();
-    dictCount.textContent = visible.length + ' szó';
+    const sentencePackMode = profilManager.isSentencePackMode();
+    dictCount.textContent = visible.length + (sentencePackMode ? ' mondat' : ' szó');
     historyList.innerHTML = '';
     if(!visible.length){
-      historyList.innerHTML = '<div class="empty-state">Még nincs elmentett szavad ezen a nyelven.</div>';
+      historyList.innerHTML = '<div class="empty-state">' +
+        (sentencePackMode ? 'Még nincs elmentett mondatod ezen a nyelven.' : 'Még nincs elmentett szavad ezen a nyelven.') +
+        '</div>';
       return;
     }
     if(selectedIndex >= visible.length) selectedIndex = 0;
@@ -3335,8 +3493,16 @@ Fordítandó eredeti szöveg:
   }
   function detectDelimiter(lines){
     const header = String(lines[0] || '');
-    if(header.includes(';')) return ';';
+    const commaFields = parseCsvLine(header, ',').length;
+    const semicolonFields = parseCsvLine(header, ';').length;
+    if(commaFields >= 4 && semicolonFields < 4) return ',';
+    if(semicolonFields >= 4 && commaFields < 4) return ';';
+    if(commaFields === 4 || commaFields === 5) return ',';
+    if(semicolonFields === 4 || semicolonFields === 5) return ';';
+    if(commaFields > semicolonFields) return ',';
+    if(semicolonFields > commaFields) return ';';
     if(header.includes(',')) return ',';
+    if(header.includes(';')) return ';';
     return ';';
   }
 
@@ -3680,6 +3846,8 @@ Fordítandó eredeti szöveg:
       flashBtnRed(visualEffectBtn);
       return;
     }
+    vePackItems = [];
+    vePackItemIndex = 0;
     if(exampleModeActive && exampleFxSentence){
       const list = getActiveEntries();
       const i = list.findIndex(e => norm(fxOf(e)) === norm(exampleFxSentence));
@@ -3688,10 +3856,26 @@ Fordítandó eredeti szöveg:
       veLang = currentForeignLang;
       veCurrentHu = list[i >= 0 ? i : 0] ? huOf(list[i >= 0 ? i : 0]) : '';
     } else {
-      veIndex = null;
-      veText = currentForeignText;
-      veLang = currentForeignLang;
-      veCurrentHu = currentSourceIsHu ? origText.textContent : transText.textContent;
+      const visible = getVisibleEntries();
+      const sourceEntry = pendingSourceId ? entries.find(entry => entry.id === pendingSourceId) : null;
+      const selectedEntry = selectedIndex >= 0 && selectedIndex < visible.length ? visible[selectedIndex] : null;
+      const packEntry = sourceEntry && sourceEntry.isSentencePack
+        ? sourceEntry
+        : (selectedEntry && selectedEntry.isSentencePack && norm(fxOf(selectedEntry)) === norm(currentForeignText) ? selectedEntry : null);
+      if(packEntry){
+        veIndex = visible.findIndex(entry => entry.id === packEntry.id);
+        vePackItems = buildSentencePackItems(packEntry);
+        if(!vePackItems.length){
+          flashBtnRed(visualEffectBtn);
+          return;
+        }
+        applyVePackItem(0);
+      } else {
+        veIndex = null;
+        veText = currentForeignText;
+        veLang = currentForeignLang;
+        veCurrentHu = currentSourceIsHu ? origText.textContent : transText.textContent;
+      }
     }
     visualEffectWord.style.transition = '';
     visualEffectWord.style.transform = '';
@@ -3723,6 +3907,10 @@ Fordítandó eredeti szöveg:
     const visible = getVisibleEntries();
     if(!visible.length) return [];
     const start = (selectedIndex >= 0 && selectedIndex < visible.length) ? selectedIndex : 0;
+    const selected = visible[start];
+    if(selected && selected.isSentencePack){
+      return buildSentencePackItems(selected);
+    }
     const group = visible.slice(start, start + 5);
     return group.map(e => {
       if(exampleModeActive){
@@ -3733,17 +3921,14 @@ Fordítandó eredeti szöveg:
     });
   }
 
-  // A szókártya ablakban lévő gomb is ugyanazt a soundMuted változót használja
+  let fcMuteHu = false, fcMuteFx = false;
+
+  // A főoldali hangkapcsoló továbbra is az alkalmazás általános hangját kezeli.
   function updateSoundToggleUI() {
     const btn = soundToggleBtn;
     if (btn) {
       btn.textContent = soundMuted ? '🔇' : '🔊';
       btn.classList.toggle('muted', soundMuted);
-    }
-    // A szókártya ablakban lévő gombot is frissítjük
-    if (fcMuteBtn) {
-      fcMuteBtn.textContent = soundMuted ? '🔇' : '🔊';
-      fcMuteBtn.classList.toggle('muted', soundMuted);
     }
   }
 
@@ -3759,26 +3944,28 @@ Fordítandó eredeti szöveg:
     });
   }
 
-  // Szókártya ablakban lévő gomb eseménykezelő – ugyanazt a változót használja
+  // A szókártyán a magyar és az idegen nyelv hangja külön kapcsolható.
   if (fcMuteBtn) {
     fcMuteBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      soundMuted = !soundMuted;
-      if (soundMuted) {
+      if (fcShowingHu) fcMuteHu = !fcMuteHu;
+      else fcMuteFx = !fcMuteFx;
+      const currentSideMuted = fcShowingHu ? fcMuteHu : fcMuteFx;
+      if (currentSideMuted) {
         try { window.speechSynthesis.cancel(); } catch(e) {}
       }
-      updateSoundToggleUI();
+      fcUpdateMuteBtn();
     });
   }
 
-  let fcMuteHu = false, fcMuteFx = false;
   function fcUpdateMuteBtn(){
-    // A szókártya belső némítása (csak a kártyán belül) – külön változókat használ
-    // De a globális hangvezérlő már létezik, így ezt a funkciót átalakítjuk:
-    // A szókártya ablakban a gomb a globális soundMuted-ot kapcsolja,
-    // így itt nincs szükség külön fcMuteHu/fcMuteFx-re.
-    // A hangszóró ikont a globális állapot alapján frissítjük.
-    updateSoundToggleUI();
+    if(!fcMuteBtn) return;
+    const muted = fcShowingHu ? fcMuteHu : fcMuteFx;
+    const sideName = fcShowingHu ? 'magyar' : 'idegen nyelvű';
+    fcMuteBtn.textContent = muted ? '🔇' : '🔊';
+    fcMuteBtn.classList.toggle('muted', muted);
+    fcMuteBtn.setAttribute('aria-label', muted ? sideName + ' hang bekapcsolása' : sideName + ' hang némítása');
+    fcMuteBtn.title = muted ? sideName + ' hang bekapcsolása' : sideName + ' hang némítása';
   }
 
   function speakCurrentCard(){
@@ -3786,8 +3973,10 @@ Fordítandó eredeti szöveg:
     if(!card) return;
     const langInfo = LANGS[card.lang] || LANGS.en;
     if(fcShowingHu){
+      if(fcMuteHu) return;
       speak(card.hu, 'hu-HU');
     } else {
+      if(fcMuteFx) return;
       speak(card.fx, langInfo.tts);
     }
   }
@@ -3796,7 +3985,8 @@ Fordítandó eredeti szöveg:
     const card = fcCards[fcIndex];
     if(!card) return;
     flashcardText.textContent = fcShowingHu ? card.hu : card.fx;
-    flashcardHint.textContent = (fcIndex + 1) + '/' + fcCards.length;
+    flashcardHint.textContent = (fcIndex + 1) + '/' + fcCards.length +
+      (card.itemType === 'sentence' ? ' · mondat' : (card.itemType === 'word' ? ' · szó' : ''));
     fcUpdateMuteBtn();
     if(speakIt) speakCurrentCard();
   }
@@ -3966,7 +4156,25 @@ Fordítandó eredeti szöveg:
   let veCurrentHu = '';
   let veText = '';
   let veLang = 'en';
+  let vePackItems = [];
+  let vePackItemIndex = 0;
+
+  function applyVePackItem(index){
+    if(!vePackItems.length) return false;
+    vePackItemIndex = ((index % vePackItems.length) + vePackItems.length) % vePackItems.length;
+    const item = vePackItems[vePackItemIndex];
+    veText = item.fx;
+    veCurrentHu = item.hu;
+    veLang = item.lang || selectedLang;
+    return true;
+  }
+
   function veGoToWord(step){
+    if(vePackItems.length){
+      applyVePackItem(vePackItemIndex + step);
+      renderVisualEffect();
+      return;
+    }
     const visible = getActiveEntries();
     if(!visible.length) return;
     if(veIndex === null){
@@ -4643,6 +4851,9 @@ Fordítandó eredeti szöveg:
   let practiceGroupIndex = 0;
   let practiceWordIndex = 0;
   let practiceGroupLength = 0;
+  let practiceSentencePackActive = false;
+  let practiceSentencePackSourceIndex = 0;
+  let practiceSentencePackItems = [];
   let practiceCurrentCorrect = '';
   let practiceCurrentLang = 'en';
 
@@ -4660,6 +4871,39 @@ Fordítandó eredeti szöveg:
     return getVisibleEntries();
   }
 
+  function getSentencePackEntryIndexes(){
+    return getVisibleEntries()
+      .map((entry, index) => entry.isSentencePack ? index : -1)
+      .filter(index => index >= 0);
+  }
+
+  function loadPracticeSentencePack(sourceIndex, showLastItem){
+    const visible = getVisibleEntries();
+    const packIndexes = getSentencePackEntryIndexes();
+    if(!packIndexes.length){
+      practiceSentencePackActive = false;
+      practiceSentencePackItems = [];
+      return false;
+    }
+    const resolvedIndex = packIndexes.includes(sourceIndex) ? sourceIndex : packIndexes[0];
+    practiceSentencePackSourceIndex = resolvedIndex;
+    practiceSentencePackItems = buildSentencePackItems(visible[resolvedIndex]);
+    practiceSentencePackActive = practiceSentencePackItems.length > 0;
+    practiceGroupLength = practiceSentencePackItems.length;
+    practiceWordIndex = showLastItem ? Math.max(0, practiceGroupLength - 1) : 0;
+    selectedIndex = resolvedIndex;
+    return practiceSentencePackActive;
+  }
+
+  function movePracticeSentencePack(step, showLastItem){
+    const packIndexes = getSentencePackEntryIndexes();
+    if(!packIndexes.length) return;
+    const currentPosition = Math.max(0, packIndexes.indexOf(practiceSentencePackSourceIndex));
+    const nextPosition = (currentPosition + step + packIndexes.length) % packIndexes.length;
+    loadPracticeSentencePack(packIndexes[nextPosition], showLastItem);
+    renderPracticeWord();
+  }
+
   function openPractice(){
     stopPlayback = true;
     try{ window.speechSynthesis.cancel(); }catch(e){}
@@ -4674,8 +4918,16 @@ Fordítandó eredeti szöveg:
     } else if(selectedIndex >= 0 && selectedIndex < visible.length){
       startIndex = selectedIndex;
     }
-    practiceGroupIndex = Math.floor(startIndex / 5);
-    practiceWordIndex = startIndex % 5;
+    const selectedEntry = !exampleModeActive ? visible[startIndex] : null;
+    if(selectedEntry && selectedEntry.isSentencePack){
+      loadPracticeSentencePack(startIndex, false);
+      practiceGroupIndex = 0;
+    } else {
+      practiceSentencePackActive = false;
+      practiceSentencePackItems = [];
+      practiceGroupIndex = Math.floor(startIndex / 5);
+      practiceWordIndex = startIndex % 5;
+    }
     practiceDrillView.style.display = 'block';
     practicePanel.style.transition = '';
     practicePanel.style.transform = '';
@@ -4707,15 +4959,28 @@ Fordítandó eredeti szöveg:
     }
     practiceInput.style.display = '';
     practiceMicBtn.style.display = '';
-    const totalGroups = Math.ceil(visible.length / 5);
-    if(practiceGroupIndex >= totalGroups) practiceGroupIndex = 0;
-    const group = visible.slice(practiceGroupIndex * 5, practiceGroupIndex * 5 + 5);
-    practiceGroupLength = group.length;
-    const entry = group[practiceWordIndex % group.length];
+    let entry;
+    if(practiceSentencePackActive){
+      if(!practiceSentencePackItems.length && !loadPracticeSentencePack(practiceSentencePackSourceIndex, false)) return;
+      practiceGroupLength = practiceSentencePackItems.length;
+      practiceWordIndex = ((practiceWordIndex % practiceGroupLength) + practiceGroupLength) % practiceGroupLength;
+      entry = practiceSentencePackItems[practiceWordIndex];
+      const packIndexes = getSentencePackEntryIndexes();
+      const packPosition = Math.max(0, packIndexes.indexOf(practiceSentencePackSourceIndex));
+      practiceProgress.textContent = 'Mondat ' + (packPosition + 1) + '/' + packIndexes.length +
+        ' — elem ' + (practiceWordIndex + 1) + '/' + practiceGroupLength +
+        (entry.itemType === 'sentence' ? ' · teljes mondat' : ' · szó');
+    } else {
+      const totalGroups = Math.ceil(visible.length / 5);
+      if(practiceGroupIndex >= totalGroups) practiceGroupIndex = 0;
+      const group = visible.slice(practiceGroupIndex * 5, practiceGroupIndex * 5 + 5);
+      practiceGroupLength = group.length;
+      entry = group[practiceWordIndex % group.length];
+      practiceProgress.textContent = (practiceGroupIndex + 1) + '. csoport (' + totalGroups + ' közül) — ' + ((practiceWordIndex % group.length) + 1) + '/' + group.length;
+    }
     const promptText = practiceDirection === 'hu' ? huOf(entry) : fxOf(entry);
     practiceCurrentCorrect = practiceDirection === 'hu' ? fxOf(entry) : huOf(entry);
     practiceCurrentLang = entry.lang;
-    practiceProgress.textContent = (practiceGroupIndex + 1) + '. csoport (' + totalGroups + ' közül) — ' + ((practiceWordIndex % group.length) + 1) + '/' + group.length;
     practicePrompt.textContent = promptText;
     practiceInput.textContent = '';
     practiceFeedback.textContent = '';
@@ -4740,19 +5005,37 @@ Fordítandó eredeti szöveg:
       const answerLang = practiceDirection === 'hu' ? langInfo.tts : 'hu-HU';
       speak(practiceCurrentCorrect, answerLang);
     } else {
-      practiceFeedback.textContent = '✘ Helyesen: ' + practiceCurrentCorrect;
-      practiceFeedback.className = 'practice-feedback incorrect';
+      practiceFeedback.textContent = practiceCurrentCorrect;
+      practiceFeedback.className = 'practice-feedback correct-answer';
       practiceCheckBtn.classList.add('flash-incorrect');
       practiceInput.classList.remove('correct-bg');
     }
   }
 
   function goToNextPracticeWord(){
+    if(practiceSentencePackActive){
+      if(practiceWordIndex < practiceGroupLength - 1){
+        practiceWordIndex++;
+        renderPracticeWord();
+      } else {
+        movePracticeSentencePack(1, false);
+      }
+      return;
+    }
     practiceWordIndex = (practiceWordIndex + 1) % (practiceGroupLength || 1);
     renderPracticeWord();
   }
 
   function goToPreviousPracticeWord(){
+    if(practiceSentencePackActive){
+      if(practiceWordIndex > 0){
+        practiceWordIndex--;
+        renderPracticeWord();
+      } else {
+        movePracticeSentencePack(-1, true);
+      }
+      return;
+    }
     const length = practiceGroupLength || 1;
     practiceWordIndex = (practiceWordIndex - 1 + length) % length;
     renderPracticeWord();
@@ -4765,19 +5048,20 @@ Fordítandó eredeti szöveg:
     speak(practiceCurrentCorrect, answerLang);
   }
 
-  // Gombok és a beviteli mező kivételével bárhova kattintva/koppintva
-  // (háttér, panel, szókártya, szöveg) hangosan felolvassuk az aktuális
-  // szót/mondatot — de a billentyűzet ne tűnjön el mobilon.
-  function isPracticeInteractiveTarget(target){
-    return !!(target.closest && target.closest('button, input, #practiceInput, .icon-btn, .action-btn, .mic-size-btn'));
+  // A gombokon kívüli kattintás/koppintás mindig a keresett fordítást olvassa fel.
+  function isPracticeButtonTarget(target){
+    return !!(target.closest && target.closest('button, [role="button"]'));
+  }
+  function isPracticeEditableTarget(target){
+    return !!(target.closest && target.closest('input, textarea, select, #practiceInput, [contenteditable="true"]'));
   }
 
   practiceOverlay.addEventListener('click', (e) => {
-    if(isPracticeInteractiveTarget(e.target)) return;
+    if(isPracticeButtonTarget(e.target)) return;
     speakCurrentPracticeItem();
   });
   practiceOverlay.addEventListener('mousedown', (e) => {
-    if(isPracticeInteractiveTarget(e.target)) return;
+    if(isPracticeButtonTarget(e.target) || isPracticeEditableTarget(e.target)) return;
     // Megakadályozza, hogy a fókusz (és vele a mobil billentyűzet) eltűnjön.
     e.preventDefault();
   });
@@ -4937,6 +5221,10 @@ Fordítandó eredeti szöveg:
   practiceNextGroupBtn.addEventListener('click', () => {
     practiceNextGroupBtn.classList.add('flash-white');
     setTimeout(() => practiceNextGroupBtn.classList.remove('flash-white'), 250);
+    if(practiceSentencePackActive){
+      movePracticeSentencePack(1, false);
+      return;
+    }
     practiceGroupIndex++;
     practiceWordIndex = 0;
     renderPracticeWord();
