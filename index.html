@@ -138,6 +138,48 @@
     border-color: var(--paprika);
     background: rgba(var(--paprika-rgb),0.12);
   }
+  #rulesOverlay{
+    z-index: 500;
+    padding-top: calc(64px + var(--top-offset, 0px));
+  }
+  .rules-list .rule-option{
+    position: relative;
+    justify-content: center;
+    padding: 12px;
+    font-weight: 700;
+  }
+  .rules-list .rule-option.copied{
+    background: var(--paprika);
+    border-color: var(--paprika);
+    color: #fff;
+  }
+  .rules-copy-status{
+    position: relative;
+    z-index: 1;
+    min-height: 20px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+  }
+  .memory-transfer-overlay{
+    z-index: 520;
+    padding-top: calc(64px + var(--top-offset, 0px));
+  }
+  .transfer-choice-list .transfer-option{
+    justify-content: center;
+    padding: 12px;
+    font-weight: 700;
+  }
+  .memory-transfer-status{
+    position: relative;
+    z-index: 1;
+    min-height: 20px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+  }
   .menu-sep{
     height: 1px;
     background: var(--line);
@@ -1749,13 +1791,7 @@
           <button id="ebookOpenBtn">📖 E-könyv</button>
           <button id="apiOpenBtn">🌐 Fordító API</button>
           <button id="marginOpenBtn">📏 Képernyő margó</button>
-          <button class="menu-section-label" id="themeSectionToggle">🎨 Téma</button>
-          <div class="theme-area-list" id="themeAreaList">
-            <button class="theme-area-btn" data-area="main">Főoldal <span>Ki</span></button>
-            <button class="theme-area-btn" data-area="memory">Memória <span>Ki</span></button>
-            <button class="theme-area-btn" data-area="practice">Gyakorlás <span>Ki</span></button>
-            <button class="theme-area-btn" data-area="flashcard">Szókártya <span>Ki</span></button>
-          </div>
+          <button id="rulesOpenBtn">📋 Szabályok</button>
           <button id="profileMenuItem">👤 Profilok</button>
           <div class="menu-sep"></div>
           <button class="lang-option active" id="langCycleBtn" data-lang="en"><span>🇺🇸</span>Angol</button>
@@ -1944,6 +1980,21 @@
     </div>
   </div>
 
+  <div class="link-overlay" id="rulesOverlay" aria-hidden="true">
+    <div class="link-panel">
+      <div class="link-title">Melyik CSV szabályait másoljam?</div>
+      <div class="api-list rules-list">
+        <button class="icon-btn rule-option" data-rule-type="normal">Alaphelyzet - szavak</button>
+        <button class="icon-btn rule-option" data-rule-type="sentence">Mondatcsomag</button>
+        <button class="icon-btn rule-option" data-rule-type="ebook">E-könyv - fejezetfordítás</button>
+      </div>
+      <div class="rules-copy-status" id="rulesCopyStatus" aria-live="polite">A választott szabályrendszer a vágólapra kerül.</div>
+      <div class="link-btn-row">
+        <button class="icon-btn" id="rulesCloseBtn">Bezár</button>
+      </div>
+    </div>
+  </div>
+
   <div class="flashcard-overlay" id="flashcardOverlay">
     <button id="fcMuteBtn" aria-label="Némítás">🔊</button>
     <button id="fcSaveBtn" aria-label="Aktuális szókártya mentése">+</button>
@@ -2017,8 +2068,8 @@
           </div>
         </div>
         <div class="memory-toolbar">
-          <button class="memory-lang-frame" id="memoryNoteBtn" aria-label="Megjegyzés sor beszúrása">📝</button><button class="memory-lang-frame" id="memoryRulesBtn" aria-label="AI CSV-szabályok letöltése">📥</button>
-          <button class="icon-btn mem-toolbar-btn" id="memoryImportBtn">⬆ Import (CSV)</button>
+          <button class="memory-lang-frame" id="memoryNoteBtn" aria-label="Megjegyzés sor beszúrása">📝</button>
+          <button class="icon-btn mem-toolbar-btn" id="memoryImportBtn">⬆ Import</button>
           <button class="icon-btn mem-toolbar-btn" id="memoryExportBtn">⬇ Export</button>
         </div>
       </div>
@@ -2032,6 +2083,34 @@
         <div id="memoryBookView" style="display:none;"></div>
         <div class="empty-state" id="memoryEmptyState" style="display:none;">Még nincs semmi a memóriában ezen a nyelven.</div>
         <button class="icon-btn" id="memoryAddRowBtn" aria-label="Új sor hozzáadása">＋ Új sor</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="link-overlay memory-transfer-overlay" id="memoryImportChoiceOverlay" aria-hidden="true">
+    <div class="link-panel">
+      <div class="link-title">Hogyan szeretnél importálni?</div>
+      <div class="api-list transfer-choice-list">
+        <button class="icon-btn transfer-option" id="memoryPasteBtn">📋 Beillesztés</button>
+        <button class="icon-btn transfer-option" id="memoryImportSearchBtn">🔎 Keresés - CSV</button>
+      </div>
+      <div class="memory-transfer-status" id="memoryImportChoiceStatus" aria-live="polite">A Beillesztés a vágólap tartalmát rögtön a jelenlegi Memóriába teszi.</div>
+      <div class="link-btn-row">
+        <button class="icon-btn" id="memoryImportChoiceCloseBtn">Bezár</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="link-overlay memory-transfer-overlay" id="memoryExportChoiceOverlay" aria-hidden="true">
+    <div class="link-panel">
+      <div class="link-title">Hogyan szeretnél exportálni?</div>
+      <div class="api-list transfer-choice-list">
+        <button class="icon-btn transfer-option" id="memoryCopyBtn">📋 Másolás</button>
+        <button class="icon-btn transfer-option" id="memoryExportSearchBtn">🔎 Keresés - CSV mentés</button>
+      </div>
+      <div class="memory-transfer-status" id="memoryExportChoiceStatus" aria-live="polite">A Másolás az aktuális Memória teljes CSV-szövegét a vágólapra teszi.</div>
+      <div class="link-btn-row">
+        <button class="icon-btn" id="memoryExportChoiceCloseBtn">Bezár</button>
       </div>
     </div>
   </div>
@@ -2597,13 +2676,22 @@
   const memoryAddBtn = document.getElementById('memoryAddBtn');
   const memoryLangTag = document.getElementById('memoryLangTag');
   const memoryBookBtn = document.getElementById('memoryBookBtn');
-  const memoryRulesBtn = document.getElementById('memoryRulesBtn');
   const memoryBookView = document.getElementById('memoryBookView');
   const memoryHuColHead = document.getElementById('memoryHuColHead');
   const memoryColHead = document.getElementById('memoryColHead');
   const memoryColHeadSentence = document.getElementById('memoryColHeadSentence');
   const memoryImportBtn = document.getElementById('memoryImportBtn');
   const memoryExportBtn = document.getElementById('memoryExportBtn');
+  const memoryImportChoiceOverlay = document.getElementById('memoryImportChoiceOverlay');
+  const memoryExportChoiceOverlay = document.getElementById('memoryExportChoiceOverlay');
+  const memoryPasteBtn = document.getElementById('memoryPasteBtn');
+  const memoryCopyBtn = document.getElementById('memoryCopyBtn');
+  const memoryImportSearchBtn = document.getElementById('memoryImportSearchBtn');
+  const memoryExportSearchBtn = document.getElementById('memoryExportSearchBtn');
+  const memoryImportChoiceCloseBtn = document.getElementById('memoryImportChoiceCloseBtn');
+  const memoryExportChoiceCloseBtn = document.getElementById('memoryExportChoiceCloseBtn');
+  const memoryImportChoiceStatus = document.getElementById('memoryImportChoiceStatus');
+  const memoryExportChoiceStatus = document.getElementById('memoryExportChoiceStatus');
   const memoryWordsBackBtn = document.getElementById('memoryWordsBackBtn');
   const memoryContentTitle = document.getElementById('memoryContentTitle');
   const memoryTableBody = document.getElementById('memoryTableBody');
@@ -2800,12 +2888,9 @@ Helyes CSV-minta:
 fejezet;idegen_mondat;magyar_mondat;nyelv
 1;"Once when I was six years old I saw a magnificent picture in a book.";"Hatéves koromban egyszer egy csodálatos képet láttam egy könyvben.";en
 
-Fejezet: [IDE ÍRD A FEJEZETET, PL. 1]
-Nyelv: [IDE ÍRD AZ EREDETI NYELV KÓDJÁT, PL. en]
-
 Fordítsd le a következő angol szöveget magyarra a lehető legpontosabban. Elsősorban az eredeti angol szöveg jelentését és összefüggéseit kövesd, ne szó szerint fordíts. A magyar szöveg legyen természetes, nyelvtanilag helyes és gördülékeny, de ne változtasd meg és ne egészítsd ki az eredeti jelentést. Ügyelj a többjelentésű szavakra, az állandó szókapcsolatokra, a névmásokra, az igeidőkre és a szövegkörnyezetre. A neveket és visszatérő kifejezéseket következetesen fordítsd. A fordítás elkészítése után ellenőrizd mondatonként, hogy semmi nem maradt ki, nem került bele jelentéstorzítás, és nincs benne szó szerinti, gépies megfogalmazás. Csak az ellenőrzött magyar fordítást add vissza.
 
-Fordítandó eredeti szöveg:
+Feldolgozandó tartalom:
 `; const blob=new Blob([rules],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Szabaly-konyv-fejezet-forditas.txt';a.click();URL.revokeObjectURL(url); }
   async function processBookTranslationImport(file){
     if(!memoryBookId){ showMemoryNote('Előbb válaszd ki a könyv borítóját.'); return; }
@@ -3006,7 +3091,6 @@ Fordítandó eredeti szöveg:
     renderMemoryTable();
   });
   memoryBookBtn.addEventListener('click',()=>{ if(!isEbookMemoryProfile())return; memoryBookMode=!memoryBookMode; memoryBookId=null; memoryBookChapter=null; memoryBookBtn.classList.toggle('active',memoryBookMode); memoryOverlay.classList.toggle('book-mode',memoryBookMode); memoryLangTag.classList.toggle('find-on',false); renderMemoryTable(); });
-  memoryRulesBtn.addEventListener('click',()=>downloadBookCsvRules());
 
   const memoryNoteBtn = document.getElementById('memoryNoteBtn');
   memoryNoteBtn.addEventListener('click', () => {
@@ -3486,6 +3570,8 @@ Fordítandó eredeti szöveg:
 
   function closeMemoryOverlay(){
     memoryOverlay.classList.remove('show');
+    setTransferOverlayOpen(memoryImportChoiceOverlay, false);
+    setTransferOverlayOpen(memoryExportChoiceOverlay, false);
     memoryBookMode = false;
     memoryBookId = null;
     memoryBookChapter = null;
@@ -3528,11 +3614,11 @@ Fordítandó eredeti szöveg:
     memoryJumpBottomBtn.setAttribute('aria-label',memoryJumpAtBottom?'Ugrás az elejére':'Ugrás a végére');
   });
 
-  memoryImportBtn.addEventListener('click', () => {
+  function browseMemoryCsv(){
     pickCsvFile((file) => memoryBookMode ? processBookTranslationImport(file) : processMemoryImportFile(file));
-  });
+  }
 
-  memoryExportBtn.addEventListener('click', () => {
+  function downloadCurrentMemoryCsvFile(){
     if(memoryBookMode){
       if(!memoryBookId){ showMemoryNote('Előbb válaszd ki a könyv borítóját.'); return; } const bookId=currentTranslationBookId(), chapters=currentBookTranslations(); const rows=['fejezet;idegen_mondat;magyar_mondat;nyelv']; Object.keys(chapters).forEach(ch=>chapters[ch].forEach(r=>rows.push([ch,r.foreign,r.hu,selectedLang].map(v=>csvEscape(v,';')).join(';')))); const blob=new Blob([rows.join('\r\n')],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='konyvforditas-'+bookId+'.csv';a.click();URL.revokeObjectURL(url);return;
     }
@@ -3578,6 +3664,158 @@ Fordítandó eredeti szöveg:
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function setTransferOverlayOpen(overlay, open){
+    overlay.classList.toggle('show', open);
+    overlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+  }
+
+  function buildCurrentMemoryCsv(){
+    if(memoryBookMode){
+      if(!memoryBookId) return { error:'Előbb válaszd ki a könyv borítóját.' };
+      const bookId = currentTranslationBookId();
+      const chapters = currentBookTranslations();
+      const rows = ['fejezet;idegen_mondat;magyar_mondat;nyelv'];
+      Object.keys(chapters).sort((a,b)=>Number(a)-Number(b)).forEach(chapter => {
+        (chapters[chapter] || []).forEach(row => {
+          rows.push([chapter, row.foreign || '', row.hu || '', selectedLang]
+            .map(value => csvEscape(String(value), ';')).join(';'));
+        });
+      });
+      if(rows.length === 1) return { error:'Ebben a könyvben még nincs másolható fejezetfordítás.' };
+      return { csv:rows.join('\r\n'), filename:'konyvforditas-' + bookId + '.csv' };
+    }
+
+    const visible = getVisibleMemoryEntries().filter(entry => !entry.isNote);
+    if(profilManager.isSentencePackMode()){
+      const packs = visible.filter(entry => entry.isSentencePack);
+      if(!packs.length) return { error:'Nincs másolható mondatcsomag.' };
+      const rows = [['Magyar szavak','Idegen szavak','Magyar mondat','Idegen mondat']
+        .map(value => csvEscape(value, ';')).join(';')];
+      packs.forEach(entry => {
+        rows.push([entry.hu || '', entry.foreign || '', entry.huSentence || '', entry.fxSentence || '']
+          .map(value => csvEscape(String(value), ';')).join(';'));
+      });
+      return { csv:rows.join('\r\n'), filename:'mondatcsomag-' + selectedLang + '.csv' };
+    }
+
+    if(!visible.length) return { error:'Az aktuális Memória üres.' };
+    const rows = [['Magyar szó','Idegen szó','Magyar mondat','Idegen mondat','Kapcsolt sorok']
+      .map(value => csvEscape(value, ';')).join(';')];
+    visible.forEach(entry => {
+      const linkedNumbers = (entry.linkedWordIds || [])
+        .map(id => visible.findIndex(item => item.id === id))
+        .filter(index => index >= 0)
+        .map(index => index + 1)
+        .join(',');
+      rows.push([
+        entry.hu || '', entry.foreign || '', entry.huSentence || '', entry.fxSentence || '', linkedNumbers
+      ].map(value => csvEscape(String(value), ';')).join(';'));
+    });
+    return { csv:rows.join('\r\n'), filename:'memoria-' + selectedLang + '.csv' };
+  }
+
+  function downloadBuiltMemoryCsv(){
+    const data = buildCurrentMemoryCsv();
+    if(data.error){
+      memoryExportChoiceStatus.textContent = data.error;
+      return false;
+    }
+    let filename = prompt('Fájlnév:', data.filename);
+    if(filename === null) return false;
+    filename = filename.trim() || data.filename;
+    if(!/\.csv$/i.test(filename)) filename += '.csv';
+    const blob = new Blob(['\uFEFF' + data.csv], { type:'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    memoryExportChoiceStatus.textContent = '✓ A CSV mentése elindult.';
+    return true;
+  }
+
+  function clipboardTextLooksImportable(text){
+    const lines = String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim());
+    if(!lines.length) return false;
+    const delimiter = detectDelimiter(lines);
+    let startIndex = 0;
+    const first = parseCsvLine(lines[0], delimiter);
+    const firstCell = String(first[0] || '').trim().toLowerCase();
+    if(memoryBookMode){
+      if(firstCell.includes('fejezet') || firstCell.includes('könyv')) startIndex = 1;
+    }else if(/^magyar(?:\s+szó|\s+szavak)?$/i.test(String(first[0] || '').trim())){
+      startIndex = 1;
+    }
+    if(startIndex >= lines.length) return false;
+    const sample = parseCsvLine(lines[startIndex], delimiter);
+    return sample.length >= (memoryBookMode || profilManager.isSentencePackMode() ? 4 : 2);
+  }
+
+  async function importMemoryFromClipboard(){
+    memoryImportChoiceStatus.textContent = 'Vágólap olvasása...';
+    let text = '';
+    try{
+      if(!navigator.clipboard || !navigator.clipboard.readText) throw new Error('clipboard unavailable');
+      text = await navigator.clipboard.readText();
+    }catch(e){
+      memoryImportChoiceStatus.textContent = 'A böngésző nem engedte a vágólap olvasását. Használd a Keresés - CSV gombot.';
+      return;
+    }
+    if(!text.trim()){
+      memoryImportChoiceStatus.textContent = 'A vágólap üres.';
+      return;
+    }
+    if(!clipboardTextLooksImportable(text)){
+      memoryImportChoiceStatus.textContent = 'A vágólapon nem találtam az aktuális Memóriához megfelelő CSV-szöveget.';
+      return;
+    }
+    const clipboardFile = new Blob([text], { type:'text/csv;charset=utf-8;' });
+    try{
+      if(memoryBookMode) await processBookTranslationImport(clipboardFile);
+      else await processMemoryImportFile(clipboardFile);
+      memoryImportChoiceStatus.textContent = '✓ A vágólap tartalma bekerült a Memóriába.';
+    }catch(e){
+      memoryImportChoiceStatus.textContent = 'Nem sikerült feldolgozni a vágólap tartalmát.';
+    }
+  }
+
+  memoryImportBtn.addEventListener('click', () => {
+    memoryImportChoiceStatus.textContent = 'A Beillesztés a vágólap tartalmát rögtön a jelenlegi Memóriába teszi.';
+    setTransferOverlayOpen(memoryImportChoiceOverlay, true);
+  });
+  memoryExportBtn.addEventListener('click', () => {
+    memoryExportChoiceStatus.textContent = 'A Másolás az aktuális Memória teljes CSV-szövegét a vágólapra teszi.';
+    setTransferOverlayOpen(memoryExportChoiceOverlay, true);
+  });
+  memoryPasteBtn.addEventListener('click', importMemoryFromClipboard);
+  memoryCopyBtn.addEventListener('click', async () => {
+    const data = buildCurrentMemoryCsv();
+    if(data.error){
+      memoryExportChoiceStatus.textContent = data.error;
+      return;
+    }
+    const copied = await copyRuleText(data.csv);
+    memoryExportChoiceStatus.textContent = copied
+      ? '✓ A teljes aktuális Memória a vágólapra került.'
+      : 'Nem sikerült a másolás. Próbáld HTTPS kapcsolaton vagy használd a CSV mentést.';
+  });
+  memoryImportSearchBtn.addEventListener('click', () => {
+    setTransferOverlayOpen(memoryImportChoiceOverlay, false);
+    browseMemoryCsv();
+  });
+  memoryExportSearchBtn.addEventListener('click', () => {
+    downloadBuiltMemoryCsv();
+  });
+  memoryImportChoiceCloseBtn.addEventListener('click', () => setTransferOverlayOpen(memoryImportChoiceOverlay, false));
+  memoryExportChoiceCloseBtn.addEventListener('click', () => setTransferOverlayOpen(memoryExportChoiceOverlay, false));
+  memoryImportChoiceOverlay.addEventListener('click', event => {
+    if(event.target === memoryImportChoiceOverlay) setTransferOverlayOpen(memoryImportChoiceOverlay, false);
+  });
+  memoryExportChoiceOverlay.addEventListener('click', event => {
+    if(event.target === memoryExportChoiceOverlay) setTransferOverlayOpen(memoryExportChoiceOverlay, false);
   });
 
   async function processMemoryImportFile(file){
@@ -4939,6 +5177,156 @@ Fordítandó eredeti szöveg:
     apiOverlay.classList.add('show');
   });
 
+  const rulesOpenBtn = document.getElementById('rulesOpenBtn');
+  const rulesOverlay = document.getElementById('rulesOverlay');
+  const rulesCloseBtn = document.getElementById('rulesCloseBtn');
+  const rulesCopyStatus = document.getElementById('rulesCopyStatus');
+  const ruleOptions = [...document.querySelectorAll('.rule-option')];
+
+  function buildCsvRuleText(type){
+    const language = LANGS[selectedLang] || LANGS.en;
+    const languageName = language.label;
+    const languageCode = selectedLang;
+    const languageAdverb = { en:'angolul', es:'spanyolul', de:'németül' }[languageCode] || languageName.toLowerCase();
+
+    if(type === 'sentence'){
+      return `SZÓMONDÓ 1 - MONDATCSOMAG CSV SZABÁLYOK
+
+Feladat: készíts a megadott témából vagy szövegből a Szómondó 1 alkalmazás Mondatcsomag Memóriájába importálható CSV fájlt.
+
+A választ valódi, letölthető .csv fájlként add. Ne írj magyarázatot, bevezetőt, Markdown-kódblokkot vagy a CSV-n kívüli szöveget.
+
+Kódolás: UTF-8
+Elválasztó: pontosvessző (;)
+Célnyelv: ${languageName} (${languageCode})
+
+Kötelező fejléc - pontosan ez legyen az első sor:
+Magyar szavak;Idegen szavak;Magyar mondat;Idegen mondat
+
+Kötelező szabályok:
+1. Egy CSV-sor egy teljes magyar mondatot és annak teljes ${languageName.toLowerCase()} fordítását tartalmazza.
+2. A Magyar szavak mezőben a magyar mondat fontos szavai vagy rövid kifejezései szerepeljenek, ebben a formában: szó1 | szó2 | szó3.
+3. Az Idegen szavak mezőben ugyanebben a sorrendben szerepeljenek a magyar elemek pontos ${languageName.toLowerCase()} megfelelői.
+4. A két szólista elemszáma mindig pontosan azonos legyen. Az első magyar elem az első idegen elemhez, a második a másodikhoz tartozzon.
+5. A Magyar mondat és az Idegen mondat mező mindig legyen kitöltve, természetes és jelentésében egyező teljes mondattal.
+6. A függőleges vonal (|) csak a szó- vagy kifejezéspárok elválasztására használható.
+7. Ha egy mező pontosvesszőt, idézőjelet vagy sortörést tartalmaz, tedd dupla idézőjelek közé.
+8. A mezőn belüli dupla idézőjelet két dupla idézőjellel írd.
+9. Ne adj hozzá sorszámot, üres sort vagy további oszlopot.
+10. Ellenőrizd, hogy minden sor pontosan négy oszlopos és importálható legyen.
+
+Feldolgozandó tartalom:`;
+    }
+
+    if(type === 'ebook'){
+      return `SZÓMONDÓ 1 - E-KÖNYV FEJEZETFORDÍTÁS CSV SZABÁLYOK
+
+Feladat: fordítsd le a megadott könyvfejezetet mondatonként magyarra, és készíts a Szómondó 1 E-könyv Memóriájába importálható CSV fájlt.
+
+A választ valódi, letölthető .csv fájlként add. Ne írj magyarázatot, bevezetőt, Markdown-kódblokkot vagy a CSV-n kívüli szöveget.
+
+Kódolás: UTF-8
+Elválasztó: pontosvessző (;)
+Az eredeti szöveg nyelve: ${languageName}
+Kötelező nyelvkód: ${languageCode}
+
+Kötelező fejléc - pontosan ez legyen az első sor:
+fejezet;idegen_mondat;magyar_mondat;nyelv
+
+Kötelező szabályok:
+1. Egy CSV-sor pontosan egy teljes eredeti mondatot és annak teljes magyar fordítását tartalmazza.
+2. Az idegen_mondat mezőt változtatás nélkül másold át az eredeti szövegből, az írásjelekkel együtt.
+3. A magyar_mondat természetes, nyelvtanilag helyes és az eredeti jelentését pontosan követő fordítás legyen.
+4. A fejezet mezőben minden sornál ugyanaz a bemásolt tartalomban megadott fejezetszám vagy fejezetnév szerepeljen. Ha nincs megadva, használd az 1 értéket.
+5. A nyelv mező értéke minden adatsorban pontosan ez legyen: ${languageCode}
+6. Mind a négy oszlopot töltsd ki minden adatsorban.
+7. Ha egy mező pontosvesszőt, idézőjelet vagy sortörést tartalmaz, tedd dupla idézőjelek közé.
+8. A mezőn belüli dupla idézőjelet két dupla idézőjellel írd.
+9. Ne számozd a mondatokat, ne hagyj üres sort, és ne adj hozzá további oszlopot.
+10. A fordítás után ellenőrizd mondatonként, hogy semmi nem maradt ki és a sorok sorrendje az eredeti szöveget követi.
+
+Feldolgozandó tartalom:`;
+    }
+
+    return `SZÓMONDÓ 1 - ALAPHELYZETI MEMÓRIA CSV SZABÁLYOK
+
+Feladat: készíts a megadott témából vagy szólistából a Szómondó 1 alaphelyzeti Memóriájába importálható CSV fájlt.
+
+A választ valódi, letölthető .csv fájlként add. Ne írj magyarázatot, bevezetőt, Markdown-kódblokkot vagy a CSV-n kívüli szöveget.
+
+Kódolás: UTF-8
+Elválasztó: pontosvessző (;)
+Célnyelv: ${languageName} (${languageCode})
+
+Kötelező fejléc - pontosan ez legyen az első sor:
+Magyar szó;Idegen szó;Magyar mondat;Idegen mondat;Kapcsolt sorok
+
+Kötelező szabályok:
+1. Egy CSV-sor egy magyar-${languageName.toLowerCase()} szópárt tartalmazzon.
+2. A Magyar szó mezőben magyarul, az Idegen szó mezőben ${languageAdverb} szerepeljen ugyanaz a szó vagy rövid kifejezés.
+3. A Magyar mondat és az Idegen mondat természetes, teljes, jelentésében egyező példamondat legyen, amely valóban tartalmazza az adott szót vagy kifejezést.
+4. Mindkét példamondatot töltsd ki. A fordítás legyen természetes, ne gépies szó szerinti fordítás.
+5. A Kapcsolt sorok mezőt hagyd üresen, hacsak külön nem kérek sorok közötti kapcsolatot.
+6. Kapcsolat esetén a kapcsolódó CSV-adatsorok sorszámát vesszővel add meg, például: 2,5.
+7. Ha egy mező pontosvesszőt, idézőjelet vagy sortörést tartalmaz, tedd dupla idézőjelek közé.
+8. A mezőn belüli dupla idézőjelet két dupla idézőjellel írd.
+9. Ne adj hozzá külön sorszámoszlopot, üres sort vagy további oszlopot.
+10. Ellenőrizd, hogy minden sor pontosan öt oszlopos és importálható legyen.
+
+Feldolgozandó tartalom:`;
+  }
+
+  async function copyRuleText(text){
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    }catch(e){}
+
+    const field = document.createElement('textarea');
+    field.value = text;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.left = '-9999px';
+    field.style.top = '0';
+    document.body.appendChild(field);
+    field.focus();
+    field.select();
+    field.setSelectionRange(0, field.value.length);
+    let copied = false;
+    try{ copied = document.execCommand('copy'); }catch(e){}
+    field.remove();
+    return copied;
+  }
+
+  function closeRulesOverlay(){
+    rulesOverlay.classList.remove('show');
+    rulesOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  rulesOpenBtn.addEventListener('click', () => {
+    menuPanel.classList.remove('show');
+    rulesCopyStatus.textContent = 'A választott szabályrendszer a vágólapra kerül.';
+    ruleOptions.forEach(button => button.classList.remove('copied'));
+    rulesOverlay.classList.add('show');
+    rulesOverlay.setAttribute('aria-hidden', 'false');
+  });
+  rulesCloseBtn.addEventListener('click', closeRulesOverlay);
+  rulesOverlay.addEventListener('click', (event) => {
+    if(event.target === rulesOverlay) closeRulesOverlay();
+  });
+  ruleOptions.forEach(button => button.addEventListener('click', async () => {
+    const copied = await copyRuleText(buildCsvRuleText(button.dataset.ruleType));
+    ruleOptions.forEach(option => option.classList.remove('copied'));
+    if(copied){
+      button.classList.add('copied');
+      rulesCopyStatus.textContent = '✓ Szabályok a vágólapra másolva: ' + button.textContent;
+    }else{
+      rulesCopyStatus.textContent = 'Nem sikerült a másolás. Próbáld HTTPS kapcsolaton vagy másik böngészőben.';
+    }
+  }));
+
   const MARGIN_TOP_KEY = 'hu-multi-margin-top-v1';
   const MARGIN_BOTTOM_KEY = 'hu-multi-margin-bottom-v1';
   const PRACTICE_MARGIN_TOP_KEY = 'hu-multi-margin-top-practice-v1';
@@ -5148,26 +5536,11 @@ Fordítandó eredeti szöveg:
     if(on){ if(reshuffle) reshuffleAreaTheme(area); }
     else clearAreaTheme(area);
   }
-  const themeSectionToggle = document.getElementById('themeSectionToggle');
-  const themeAreaList = document.getElementById('themeAreaList');
-  function closeThemeSubmenu(){ themeAreaList.classList.remove('show'); }
-  themeSectionToggle.addEventListener('click', () => {
-    themeAreaList.classList.toggle('show');
-  });
-
-  document.querySelectorAll('.theme-area-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const area = btn.dataset.area;
-      const on = !themeAreaOn[area];
-      setAreaTheme(area, on, true);
-      try{ localStorage.setItem(themeKey(area), on ? '1' : '0'); }catch(e){}
-    });
-  });
+  function closeThemeSubmenu(){}
   function loadThemeSplotch(){
     THEME_AREAS.forEach(area => {
-      let on = false;
-      try{ on = localStorage.getItem(themeKey(area)) === '1'; }catch(e){}
-      setAreaTheme(area, on, true);
+      try{ localStorage.setItem(themeKey(area), '1'); }catch(e){}
+      setAreaTheme(area, true, true);
     });
   }
   loadThemeSplotch();

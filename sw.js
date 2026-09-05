@@ -1,7 +1,7 @@
 // Service Worker a Szómondó 1 alkalmazáshoz
-// Verzió: v68 - szókártya memória-mentés és körkörös nyelvváltó
+// Verzió: v71 - egyszerűsített AI szabálymásolás
 
-const CACHE = 'szomondo-1-v68';
+const CACHE = 'szomondo-1-v71';
 const ASSETS = [
   './',
   './index.html',
