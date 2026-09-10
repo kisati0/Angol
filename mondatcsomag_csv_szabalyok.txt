@@ -1,0 +1,173 @@
+MONDATCSOMAG CSV – ELKÉSZÍTÉSI SZABÁLYZAT
+Szómondó alkalmazáshoz
+
+CÉL
+
+Az angol SRT-feliratból olyan CSV készüljön, amelyben egy teljes angol mondat
+egyetlen CSV-sor. Az alkalmazás a sorhoz tartozó angol szavakat sorrendben
+gyakoroltatja, majd utolsó elemként a teljes angol mondatot mutatja.
+
+
+1. A FÁJL KÖTELEZŐ TECHNIKAI FORMÁTUMA
+
+- Fájltípus: .csv
+- Karakterkódolás: UTF-8 BOM-mal.
+- Oszlopelválasztó: vessző (,).
+- Sorvége: Windows-kompatibilis CRLF.
+- Pontosan 4 oszlop legyen minden sorban.
+- Ne legyen fejléc.
+- Ne legyen index- vagy sorszámoszlop.
+- Ne legyen megjegyzéssor vagy üres sor.
+- Egy mondat adatai fizikailag is egyetlen CSV-sorban legyenek.
+
+Az oszlopok kötelező sorrendje:
+
+A oszlop: magyar szavak
+B oszlop: angol szavak
+C oszlop: teljes magyar mondat
+D oszlop: teljes eredeti angol mondat
+
+
+2. EGY MONDAT = EGY CSV-SOR
+
+- Minden teljes angol mondat külön sorba kerüljön.
+- A sorok az SRT időbélyegeinek eredeti sorrendjét kövessék.
+- Tilos a mondatokat ábécé, szógyakoriság vagy más szempont szerint rendezni.
+- Az ismétlődő mondatokat is meg kell tartani minden előfordulási helyükön.
+- Ha egy mondat több feliratblokkban vagy több képernyősorban folytatódik,
+  össze kell kapcsolni egy teljes mondattá.
+- Ha egy feliratblokk több önálló mondatot tartalmaz, azokat külön CSV-sorokra
+  kell bontani, az elhangzás sorrendjében.
+- A CSV sorainak száma a kinyert teljes mondat-előfordulások száma legyen,
+  nem pedig a feliratblokkok vagy az egyedi mondatok száma.
+
+
+3. AZ A ÉS B OSZLOP SZÓLISTÁINAK SZABÁLYAI
+
+- A szavakat a mondaton belüli eredeti sorrendben kell felsorolni.
+- A szóelemek elválasztója pontosan: szóköz, függőleges vonal, szóköz
+  Példa: én | mindig | szeretni | ő
+- Az A és B oszlopban ugyanannyi szóelemnek kell lennie.
+- Az azonos helyen álló elemek egymás fordításai legyenek:
+  A oszlop 1. eleme ↔ B oszlop 1. eleme,
+  A oszlop 2. eleme ↔ B oszlop 2. eleme, és így tovább.
+- A szavak ismétlődéseit meg kell tartani. Ha egy szó kétszer fordul elő a
+  mondatban, kétszer szerepeljen a szólistában is.
+- A különböző mondatokban ismétlődő szavakat is meg kell tartani.
+- A függőleges vonal (|) kizárólag szóelem-elválasztó lehet; egy szóelem
+  belsejében nem használható.
+- A közönséges angol szavak lehetőleg kisbetűvel és szótári alapalakban
+  szerepeljenek. Példák: hated → hate, weeks → week, was/are → be.
+- A bevett összevonások egy elemként maradhatnak: I'm, don't, wouldn't.
+- A tulajdonnevek maradjanak változatlanok és következetesek.
+- A számok és írásjelek maradjanak meg a teljes mondatban, de nem kötelező
+  külön szókártyát készíteni belőlük.
+- Állandó szókapcsolatot vagy igekötős igét egy elemként is lehet kezelni,
+  ha külön szavakra bontva elveszne a jelentése. Példa:
+  félreállni ↔ pull over.
+
+Magyar szófordítás:
+
+- Elsősorban azt a jelentést kell megadni, amely az adott mondatban helyes.
+- Több valóban hasznos jelentés pontosvesszővel választható el ugyanazon
+  szóelemen belül. Példa: őket; nekik.
+- Kerülni kell a félrevezető, az adott szövegkörnyezetben hibás jelentéseket.
+- A szó neme, száma, igeideje és mondatbeli szerepe alapján kell kiválasztani
+  a megfelelő magyar jelentést.
+
+
+4. A TELJES MONDATOK FORDÍTÁSI SZABÁLYAI
+
+D oszlop – eredeti angol mondat:
+
+- Az eredeti angol beszéd jelentése és sorrendje maradjon meg.
+- A több feliratsorból összetartozó mondatot egy sorba kell összeilleszteni.
+- Az angol írásjelek, összevonások és tulajdonnevek maradjanak helyesek.
+- Nem szabad lerövidíteni, kiegészíteni vagy átírni a mondat jelentését.
+
+C oszlop – magyar mondat:
+
+- Elsősorban az eredeti angol mondat jelentését és összefüggéseit kell követni,
+  nem szó szerint fordítani.
+- A magyar mondat legyen természetes, nyelvtanilag helyes és gördülékeny.
+- Nem maradhat ki információ, és nem kerülhet bele új vagy megváltoztatott
+  jelentés.
+- Különösen ellenőrizni kell a többjelentésű szavakat, az állandó
+  szókapcsolatokat, a névmásokat, az igeidőket és a szövegkörnyezetet.
+- A neveket és a visszatérő kifejezéseket következetesen kell kezelni.
+- Minden mondatot külön ellenőrizni kell, hogy nincs-e benne kihagyás,
+  jelentéstorzítás vagy szó szerinti, gépies megfogalmazás.
+- Csak az ellenőrzött magyar fordítás kerülhet a CSV-be.
+
+
+5. SDH ÉS FELIRATJELÖLÉSEK TISZTÍTÁSA
+
+Az SDH-felirat használható, de a következő elemeket el kell távolítani:
+
+- hang- és zajleírások: [music], [grunting], [door closes] stb.;
+- zenei jelek: ♪ és ♫;
+- beszélőnevek a mondat elejéről: KENNA:, RUTH: stb.;
+- párbeszédet jelölő felesleges kezdő kötőjelek;
+- HTML- és formázási jelölések;
+- kizárólag hanghatást tartalmazó feliratsorok.
+
+A ténylegesen kimondott párbeszédet és dalszöveget meg kell tartani. A tisztítás
+nem változtathatja meg a beszélt szöveget vagy a mondatok időrendi helyét.
+
+
+6. CSV-IDÉZÉSI SZABÁLYOK
+
+- Ha egy cellában vessző, idézőjel vagy sortörés lenne, a teljes cellát kettős
+  idézőjelek közé kell tenni.
+- A cellán belüli kettős idézőjelet meg kell duplázni.
+- A pontosvessző nem oszlopelválasztó; használható egy magyar szóelem több
+  jelentésének elválasztására.
+- A mondatokban ne maradjon belső sortörés.
+
+Példa egy helyes CSV-sorra:
+
+"te; ön | mindig | gyűlölni | emlékhely; emlékmű | és | most | én | gyűlölni | őket; nekik | is; túl","you | always | hate | memorial | and | now | i | hate | them | too","Mindig is gyűlölted a megemlékezéseket, és most már én is gyűlölöm őket.","You always hated memorials, and now I hate them, too."
+
+
+7. KÖTELEZŐ ELLENŐRZÉSEK ÁTADÁS ELŐTT
+
+[ ] Minden sor pontosan 4 oszlopos.
+[ ] Nincs fejléc, index, megjegyzéssor vagy üres sor.
+[ ] Az A és B oszlop szóelemeinek száma minden sorban azonos.
+[ ] A szóelemek páronként valódi fordításai egymásnak.
+[ ] A szavak a mondat eredeti sorrendjében vannak.
+[ ] A szó- és mondatismétlések minden előfordulása megmaradt.
+[ ] A D oszlop mondatsorrendje pontosan követi az SRT időrendjét.
+[ ] Az első CSV-sor az első használható, kimondott mondat.
+[ ] Minden teljes angol mondathoz tartozik természetes magyar fordítás.
+[ ] Nincs SDH-jelölés, beszélőnév, zenei jel vagy formázási kód.
+[ ] Nincs üres kötelező cella és nincs „undefined” érték.
+[ ] A fájl vesszővel tagolt, UTF-8 BOM kódolású CSV.
+[ ] A CSV-t próbaimporttal is ellenőrizték.
+
+
+8. IMPORTÁLÁS A SZÓMONDÓ ALKALMAZÁSBA
+
+1. Válaszd ki azt a profilt, amelybe a filmet importálni akarod.
+2. A Profilok menüben kapcsold be a ceruza bal oldalán lévő 🧩 gombot.
+3. Nyisd meg a Memória menüt.
+4. Válaszd az Import CSV lehetőséget, és nyisd meg a CSV-fájlt.
+5. Az import hozzáadja a sorokat a meglévő adatokhoz. Ugyanazt a CSV-t ne
+   importáld kétszer, különben ismétlődő mondatcsomagok keletkeznek.
+6. Ellenőrizd az első, egy középső és az utolsó mondatot.
+7. A Memóriából kijelölt mondatcsomagot a ＋ gombbal lehet a főoldalra tenni.
+
+Mondatcsomag módban a Szókártya, Gyakorlás és Effekt nézet először a mondat
+szavait mutatja sorrendben, utána pedig a teljes mondatot.
+
+
+9. ÚJRAFELHASZNÁLHATÓ FELADATLEÍRÁS
+
+„A csatolt SRT-feliratból készíts CSV-fájlt a mellékelt
+mondatcsomag_csv_szabalyok.txt minden előírásának betartásával. Dolgozd fel a
+teljes feliratot az elejétől a végéig. Tartsd meg az összes mondat-előfordulást
+az SRT időrendi sorrendjében. A magyar mondatfordításokat mondatonként
+ellenőrizd. A végén ellenőrizd a négy oszlopot, az A–B szólisták páronkénti
+egyezését, az SDH-tisztítást, a sorrendet, a kódolást és a próbaimportot. Csak a
+kész, ellenőrzött CSV-fájlt add vissza.”
+
