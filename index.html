@@ -1778,7 +1778,6 @@
   @keyframes ebook-save-glow{ 0%,100%{box-shadow:none} 45%{box-shadow:0 0 0 5px rgba(47,143,107,.42),inset 0 0 12px rgba(47,143,107,.25)} }
   .context-row{display:flex;gap:8px;justify-content:space-between;flex-shrink:0;}
   .context-row .icon-btn{font-size:13px;padding:5px 9px;min-width:0;min-height:30px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .context-row #translationDirectionBtn{max-width:none;flex-shrink:0;}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms !important;transition-duration:0.01ms !important;scroll-behavior:auto !important;}}
 </style>
 </head>
@@ -1820,7 +1819,6 @@
   </div>
   <div class="context-row">
     <button class="icon-btn" id="activeProfileBtn" aria-label="Aktív profil kiválasztása">Profil 1</button>
-    <button class="icon-btn" id="translationDirectionBtn" aria-label="Fordítás irányának váltása">Automatikus · EN</button>
   </div>
   <div class="error-status" id="errorStatus" role="status" aria-live="polite"></div>
 
@@ -2773,12 +2771,10 @@
     es: { label: 'Spanyol', tag: 'ES', tts: 'es-ES', flag: '🇪🇸' },
     de: { label: 'Német', tag: 'DE', tts: 'de-DE', flag: '🇩🇪' }
   };
-  let selectedLang = 'en', translationDirection='auto';
+  let selectedLang = 'en';
   try{
     const storedLang=localStorage.getItem('hu-multi-lang');
     if(LANGS[storedLang]) selectedLang=storedLang;
-    const direction=localStorage.getItem('hu-multi-direction');
-    if(['auto','hu','fx'].includes(direction)) translationDirection=direction;
   }catch(e){}
   let mainTranslationSequence=0, mainTranslationController=null;
 
@@ -5533,12 +5529,6 @@ Feldolgozandó tartalom:`;
     const profile=profilManager.profiles.find(p=>p.id===profilManager.activeProfileId);
     const button=document.getElementById('activeProfileBtn');
     if(button){button.textContent=profile ? profile.name : 'Profil';button.title=button.textContent;}
-    const direction=document.getElementById('translationDirectionBtn');
-    const tag=LANGS[selectedLang || 'en'].tag;
-    if(direction){
-      direction.textContent=translationDirection==='auto' ? 'Automatikus · '+tag : translationDirection==='hu' ? 'HU → '+tag : tag+' → HU';
-      direction.title='Kattintással váltás: automatikus, magyarból, idegen nyelvből.';
-    }
   }
   function cancelMainTranslation(){
     mainTranslationSequence++;
@@ -5566,15 +5556,7 @@ Feldolgozandó tartalom:`;
     updateTranslateBtnLabel();clearError();
   }
   document.getElementById('activeProfileBtn').addEventListener('click',openProfileOverlay);
-  document.getElementById('translationDirectionBtn').addEventListener('click',()=>{
-    const modes=['auto','hu','fx'];
-    cancelMainTranslation();
-    if(recognition) try{recognition.abort();}catch(e){}
-    translationDirection=modes[(modes.indexOf(translationDirection)+1)%modes.length];
-    try{localStorage.setItem('hu-multi-direction',translationDirection);}catch(e){}
-    updateContextLabels();clearError();
-  });
-  async function handleUtterance(said,isQuestion){
+  async function handleUtterance(said,isQuestion,sourceCode='hu'){
     said=said.trim();if(!said) return;
     if(isQuestion && !/[?？]\s*$/.test(said)) said+='?';
     cancelMainTranslation();clearError();
@@ -5591,8 +5573,7 @@ Feldolgozandó tartalom:`;
         }
       }
     }
-    const from=translationDirection==='auto' ? detectLanguage(said,langCode) : translationDirection==='hu' ? 'hu' : langCode;
-    if(!from){showError('Nem egyértelmű a nyelv. A fenti iránygombbal válaszd a HU → '+LANGS[langCode].tag+' vagy '+LANGS[langCode].tag+' → HU irányt.');return;}
+    const from=sourceCode==='hu' ? 'hu' : langCode;
     translateBtn.setAttribute('aria-busy','true');
     try{
       const result=await translate(said,from==='hu' ? 'hu|'+langCode : langCode+'|hu',controller.signal);
@@ -5625,7 +5606,8 @@ Feldolgozandó tartalom:`;
       flashBtnRed(translateBtn);
       return;
     }
-    handleUtterance(typedText, false);
+    const sourceTag=huVal ? tag1 : tag2;
+    handleUtterance(typedText, false, sourceTag.classList.contains('hu') ? 'hu' : selectedLang);
   });
 
   let recognition = null;
@@ -5634,7 +5616,7 @@ Feldolgozandó tartalom:`;
 
   function startRecognition(){
     if(!recognition || listening) return;
-    recognition.lang=translationDirection==='fx' ? LANGS[selectedLang].tts : 'hu-HU';
+    recognition.lang='hu-HU';
     try{ recognition.start(); }catch(e){}
   }
 
@@ -6450,6 +6432,21 @@ Feldolgozandó tartalom:`;
   function ebookWrapWords(contents){
     const doc=contents.document;
     if(ebookDocuments.has(doc)) return ebookDocuments.get(doc);
+    // EPUB content lives in its own document: outer-page CSS cannot suppress
+    // native text selection / touch lookup inside the reader iframe.
+    const selectionStyle=doc.createElement('style');
+    selectionStyle.id='szomondo-reader-selection';
+    selectionStyle.textContent='html, body, body * { -webkit-user-select:none !important; user-select:none !important; -webkit-touch-callout:none !important; }';
+    (doc.head || doc.documentElement).appendChild(selectionStyle);
+    for(const element of [doc.documentElement,doc.body]){
+      element.style.setProperty('user-select','none','important');
+      element.style.setProperty('-webkit-user-select','none','important');
+      element.style.setProperty('-webkit-touch-callout','none','important');
+    }
+    const preventNativeSelection=event=>event.preventDefault();
+    doc.addEventListener('selectstart',preventNativeSelection,true);
+    doc.addEventListener('contextmenu',preventNativeSelection,true);
+    doc.addEventListener('dblclick',preventNativeSelection,true);
     const walker=doc.createTreeWalker(doc.body,NodeFilter.SHOW_TEXT,{
       acceptNode(node){return node.parentElement && !node.parentElement.closest('script,style,noscript,svg,math,textarea,button,.ebook-word') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;}
     });
@@ -6478,6 +6475,9 @@ Feldolgozandó tartalom:`;
           const token=tokens[i],a=Math.max(record.start,token.start)-record.start,b=Math.min(end,token.end)-record.start;
           if(a>position) fragment.appendChild(doc.createTextNode(text.slice(position,a)));
           const span=doc.createElement('span');span.className='ebook-word';span.dataset.word=token.word;span.dataset.sent=String(token.sentence);span.textContent=text.slice(a,b);
+          span.style.setProperty('user-select','none','important');
+          span.style.setProperty('-webkit-user-select','none','important');
+          span.style.setProperty('-webkit-touch-callout','none','important');
           fragment.appendChild(span);position=b;
         }
         if(position<text.length) fragment.appendChild(doc.createTextNode(text.slice(position)));
@@ -6510,12 +6510,12 @@ Feldolgozandó tartalom:`;
     if(ebookDocuments.has(doc)) return;
     ebookWrapWords(contents);ebookUpdateMissingTranslation();
     let tapTimer=null,pendingSpan=null,touchX=0,touchY=0,moved=false;
-    doc.addEventListener('contextmenu',event=>{if(event.target.closest('.ebook-word') && !event.target.closest('a[href]')) event.preventDefault();});
     doc.addEventListener('click',event=>{
       if(event.target.closest('a[href]')) return;
       if(moved){event.preventDefault();return;}
       const span=event.target.closest('.ebook-word');
       if(!span){clearTimeout(tapTimer);tapTimer=null;ebookStopSpeaking();ebookClearSelection();return;}
+      event.preventDefault();
       if(tapTimer && pendingSpan===span){clearTimeout(tapTimer);tapTimer=null;ebookHandleSentenceSelect(span,doc);}
       else{
         clearTimeout(tapTimer);pendingSpan=span;

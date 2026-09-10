@@ -1,6 +1,6 @@
-// Szómondó 1 v72. Only this application's resources belong in this cache.
+// Szómondó 1 v73. Only this application's resources belong in this cache.
 const PREFIX='szomondo-1-';
-const CACHE=PREFIX+'v72';
+const CACHE=PREFIX+'v73';
 const ASSETS=[
   './','./index.html','./core.js','./manifest.json',
   './icon-192.png','./icon-512.png','./icon-maskable.png',
